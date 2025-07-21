@@ -108,7 +108,7 @@ const Login = () => {
         }, { withCredentials: true });
         if (data.success) {
           setIsLoggedin(true);
-          sessionStorage.setItem('isActiveSession', 'true');
+          sessionStorage.setItem('isLoggedin', 'true');
           await getUserData();
           const from = window.location.state?.from?.pathname || "/dashboard";
           navigate(from, { replace: true });

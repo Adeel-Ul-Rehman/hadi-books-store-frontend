@@ -8,7 +8,7 @@ import axios from "axios";
 
 // Configure axios globally
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL || 'https://rider-expense-backend.onrender.com';
+axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL || 'https://rider-expense-backend-1.onrender.com';
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

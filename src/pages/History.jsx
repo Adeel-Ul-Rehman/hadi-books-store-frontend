@@ -55,22 +55,12 @@ const History = () => {
 
   useEffect(() => {
     const initializePage = async () => {
-      try {
-        const hasActiveSession = sessionStorage.getItem("isActiveSession");
-        if (!hasActiveSession) {
-          navigate("/login");
-          return;
-        }
-        if (!isLoggedin || !userData || !userData._id) {
-          const success = await getUserData();
-          if (!success) {
-            navigate("/login");
-            return;
-          }
-        }
-      } catch (error) {
-        console.error("Initialization error:", error);
+      if (!isLoggedin) {
         navigate("/login");
+        return;
+      }
+      if (!userData || !userData._id) {
+        await getUserData();
       }
     };
     initializePage();
@@ -413,7 +403,7 @@ const History = () => {
 
         {/* Filters */}
         <div className={`${theme === "day" ? "bg-day-card" : "bg-night-card"} rounded-2xl shadow-xl p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300 border ${theme === "day" ? "border-day" : "border-night"}`}>
-          <h3 className="text-lg sm:text-xl font-semibold text-[#45B71] mb-4 text-center relative">
+          <h3 className="text-lg sm:text-xl font-semibold text-[#45B7D1] mb-4 text-center relative">
             Filters
             <span className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-16 h-1 bg-[#45B7D1] rounded-full"></span>
           </h3>
