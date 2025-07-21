@@ -40,7 +40,7 @@ export const AppContextProvider = (props) => {
             profilePicture: response.data.user.profilePicture || null
           });
           setIsLoggedin(true);
-          sessionStorage.setItem('isActiveSession', 'true');
+          localStorage.setItem('isLoggedin', 'true'); // Changed to localStorage
           return true;
         } else {
           setFetchError(response.data.message);
@@ -65,19 +65,19 @@ export const AppContextProvider = (props) => {
     setIsLoggedin(false);
     setUserData(null);
     setFetchError(null);
-    sessionStorage.removeItem('isActiveSession');
+    localStorage.removeItem('isLoggedin');
     axios.post(`${backendUrl}/api/auth/logout`, {}, { withCredentials: true })
       .catch((error) => console.error('Logout failed:', error));
   };
 
   useEffect(() => {
     const checkSession = async () => {
-      const hasActiveSession = sessionStorage.getItem('isActiveSession');
-      if (hasActiveSession) {
+      const isLoggedin = localStorage.getItem('isLoggedin');
+      if (isLoggedin) {
         const success = await getUserData();
         if (!success) {
           setIsLoggedin(false);
-          sessionStorage.removeItem('isActiveSession');
+          localStorage.removeItem('isLoggedin');
         }
       } else {
         setLoadingUser(false);
