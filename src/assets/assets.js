@@ -15,7 +15,7 @@ import star_icon from "./star_icon.png";
 import support_img from "./support_img.png";
 import cross_icon from "./cross_icon.png";
 import fb_icon from "./Facebook.png";
-import insta_icon from "./Insta.png";
+import insta_icon from "./insta.png";
 import whatsapp_icon from "./Whatsapp.png";
 import x_icon from "./x.png";
 import location from "./location.png";
