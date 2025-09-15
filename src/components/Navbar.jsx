@@ -1,194 +1,375 @@
-import React, { useState, useContext, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { AppContent } from "../context/AppContext";
-import axios from "axios";
-import { toast } from "react-toastify";
+import React, { useState, useContext } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
+import { AppContext } from "../context/AppContext";
+import { ShopContext } from "../context/ShopContext";
+import { toast } from "react-toastify";
+import SearchBar from "./SearchBar";
+import { FiHeart } from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { backendUrl, userData, isLoggedin, setIsLoggedin, setUserData, theme } =
-    useContext(AppContent);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, logout } = useContext(AppContext);
+  const { getCartCount, getWishlistCount } = useContext(ShopContext);
 
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef(null);
+  // Close profile menu after delay only if not hovering
+  const handleProfileMouseLeave = () => {
+    if (window.innerWidth > 768) {
+      const timer = setTimeout(() => {
+        if (!document.querySelector(".profile-menu:hover")) {
+          setShowProfileMenu(false);
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  };
 
   const handleLogout = async () => {
     try {
-      const { data } = await axios.post(
-        `${backendUrl}/api/auth/logout`,
-        {},
-        { withCredentials: true }
-      );
-      if (data.success) {
-        setIsLoggedin(false);
-        setUserData(null);
-        toast.success(data.message);
-        navigate("/login");
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to logout");
+      await logout();
+      setShowProfileMenu(false);
+      setMobileMenuOpen(false);
+      navigate("/");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Logout failed");
     }
-    setShowDropdown(false);
   };
 
-  const toggleDropdown = () => {
-    setShowDropdown((prev) => !prev);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const ThemeToggle = () => {
-    const { theme, toggleTheme } = useContext(AppContent);
-    
-    return (
-      <button
-        onClick={toggleTheme}
-        className={`relative w-10 h-5 sm:w-12 sm:h-6 rounded-full transition-all duration-300 focus:outline-none cursor-pointer ${
-          theme === 'day' 
-            ? 'bg-gray-200 ring-1 ring-gray-300' 
-            : 'bg-gray-700 ring-1 ring-gray-600'
-        }`}
-        aria-label="Toggle theme"
-      >
-        {/* Track background */}
-        <div className={`absolute inset-0 rounded-full ${
-          theme === 'day' ? 'bg-gray-200' : 'bg-gray-700'
-        }`}></div>
-        
-        {/* Thumb with icon */}
-        <div
-          className={`absolute top-1/2 transform -translate-y-1/2 transition-all duration-300 rounded-full flex items-center justify-center ${
-            theme === 'day'
-              ? 'bg-yellow-400 left-0.5 w-4 h-4'
-              : 'bg-gray-300 left-6 sm:left-7 w-4 h-4'
-          }`}
-        >
-          {theme === 'day' ? (
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-yellow-700">
-              <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" />
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-gray-700">
-              <path fillRule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clipRule="evenodd" />
-            </svg>
-          )}
-        </div>
-      </button>
-    );
+  // Get user initial for profile placeholder
+  const getUserInitial = () => {
+    return user?.name ? user.name.charAt(0).toUpperCase() : "U";
   };
 
   return (
-    <nav className={`${theme === 'day' ? 'bg-day-card' : 'bg-night-card text-night-text'} shadow-xl py-3 px-4 sm:px-6 lg:px-8 flex justify-between items-center relative z-10 font-['Poppins',sans-serif]`}>
-      <div className="flex items-center gap-2 sm:gap-4 justify-center w-full md:w-auto">
-        <img
-          src="/logo.png"
-          onClick={() => navigate("/")}
-          alt="Logo"
-          className="w-8 h-8 sm:w-10 sm:h-10 cursor-pointer hover:scale-105 transition-transform duration-300"
-        />
-        
-        {/* Show title next to logo on mobile */}
-        <h1 className="text-lg sm:text-xl lg:text-2xl font-bold italic tracking-tight text-[#E31837] animate-light-cycle whitespace-nowrap md:hidden">
-          𝐑𝐢𝐝𝐞𝐫 𝐄𝐱𝐩𝐞𝐧𝐬𝐞 𝐌𝐚𝐧𝐚𝐠𝐞𝐫
-        </h1>
-      </div>
+    <header className="sticky top-0 z-50 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 shadow-md">
+      {/* Main Navbar */}
+      <nav className="flex justify-between items-center py-2 px-4 sm:px-6 lg:px-8 h-16">
+        {/* Logo */}
+        <div className="flex items-center">
+          <img
+            src="/logo.png"
+            onClick={() => navigate("/")}
+            alt="Hadi Books Store Logo"
+            className="w-24 h-24 -mt-4 cursor-pointer hover:scale-105 transition-transform duration-300"
+          />
+        </div>
 
-      {/* Centered title for desktop */}
-      <h1 className="hidden md:block absolute left-1/2 transform -translate-x-1/2 text-xl lg:text-2xl font-bold italic tracking-tight text-[#E31837] animate-light-cycle whitespace-nowrap">
-        𝐑𝐢𝐝𝐞𝐫 𝐄𝐱𝐩𝐞𝐧𝐬𝐞 𝐌𝐚𝐧𝐚𝐠𝐞𝐫
-      </h1>
-
-      <div className="relative flex items-center gap-3 sm:gap-4" ref={dropdownRef}>
-        <ThemeToggle />
-        {isLoggedin && userData ? (
-          <div className="relative">
-            <div
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#E31837] text-white flex items-center justify-center text-sm sm:text-base font-semibold cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-300 shadow-md overflow-hidden"
-              onClick={toggleDropdown}
+        {/* Desktop Nav Links */}
+        <div className="hidden md:flex items-center gap-6 absolute left-1/2 transform -translate-x-1/2">
+          {["/", "/collections", "/about", "/contact"].map((path, index) => (
+            <NavLink
+              key={path}
+              to={path}
+              className={({ isActive }) =>
+                `text-base font-semibold transition-colors duration-300 ${
+                  isActive
+                    ? "text-red-500 underline underline-offset-4 decoration-2"
+                    : "text-gray-800 hover:text-" +
+                      ["sky-600", "orange-600", "red-600", "blue-600"][index]
+                }`
+              }
+              aria-label={["Home", "Collections", "About", "Contact"][index]}
             >
-              {userData.profilePicture ? (
-                <img
-                  src={userData.profilePicture}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-              ) : userData.name ? (
-                userData.name[0].toUpperCase()
-              ) : (
-                "?"
-              )}
-            </div>
+              {["HOME", "COLLECTIONS", "ABOUT", "CONTACT"][index]}
+            </NavLink>
+          ))}
+        </div>
 
-            {showDropdown && (
-              <div
-                className={`${theme === 'day' ? 'bg-day-card shadow-lg' : 'bg-night-card text-night-text shadow-night'} absolute right-0 top-full mt-2 w-48 sm:w-56 rounded-lg py-1 z-50 transition-all duration-300 ease-in-out transform origin-top-right border ${theme === 'day' ? 'border-gray-100' : 'border-gray-700'}`}
-              >
-                <button
-                  className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm ${theme === 'day' ? 'hover:bg-gray-100 text-gray-800' : 'hover:bg-gray-700 text-gray-200'} transition-all duration-200`}
-                  onClick={() => {
-                    navigate("/manage-account?tab=updateProfile");
-                    setShowDropdown(false);
-                  }}
+        {/* Right Icons - Updated order: Search, Wishlist, Cart, Profile */}
+        <div className="flex items-center gap-4">
+          {/* Search */}
+          <SearchBar isNavbar={true} />
+
+          {/* Wishlist */}
+          <button
+            className="relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            onClick={() => navigate("/wishlist")}
+            aria-label="View wishlist"
+          >
+            <FiHeart className="w-5 h-5 text-gray-800 hover:text-red-500 transition-colors" />
+            {getWishlistCount() > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {getWishlistCount()}
+              </span>
+            )}
+          </button>
+
+          {/* Cart */}
+          <button
+            className="relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            onClick={() => navigate("/cart")}
+            aria-label="View cart"
+          >
+            <img src={assets.cart_icon} alt="Cart" className="w-6 h-6" />
+            {getCartCount() > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {getCartCount()}
+              </span>
+            )}
+          </button>
+
+          {/* Profile */}
+          <div
+            className="relative group"
+            onMouseEnter={() =>
+              window.innerWidth > 768 && setShowProfileMenu(true)
+            }
+            onMouseLeave={handleProfileMouseLeave}
+            onClick={() =>
+              window.innerWidth <= 768 && setShowProfileMenu(!showProfileMenu)
+            }
+          >
+            <button
+              className="focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded-full"
+              aria-label="Profile menu"
+            >
+              {user ? (
+                user.profilePicture ? (
+                  <img
+                    src={`${user.profilePicture}?t=${Date.now()}`}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors"
+                    onError={(e) =>
+                      (e.target.src =
+                        "https://via.placeholder.com/40?text=User")
+                    }
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-semibold border-2 border-gray-300 hover:border-red-500 transition-colors">
+                    {getUserInitial()}
+                  </div>
+                )
+              ) : (
+                <img
+                  src={assets.profile_icon}
+                  alt="Profile"
+                  className="w-6 h-6"
+                />
+              )}
+            </button>
+            <AnimatePresence>
+              {(showProfileMenu || mobileMenuOpen) && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="profile-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100"
+                  onMouseEnter={() => setShowProfileMenu(true)}
+                  onMouseLeave={handleProfileMouseLeave}
                 >
-                  Manage Account
-                </button>
+                  {user ? (
+                    <>
+                      <NavLink
+                        to="/account"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          setMobileMenuOpen(false);
+                        }}
+                        aria-label="My Account"
+                      >
+                        My Account
+                      </NavLink>
+                      <NavLink
+                        to="/orders"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          setMobileMenuOpen(false);
+                        }}
+                        aria-label="My Orders"
+                      >
+                        My Orders
+                      </NavLink>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        aria-label="Logout"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <NavLink
+                        to="/login"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          setMobileMenuOpen(false);
+                        }}
+                        aria-label="Login"
+                      >
+                        Login
+                      </NavLink>
+                      <NavLink
+                        to="/register"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          setMobileMenuOpen(false);
+                        }}
+                        aria-label="Register"
+                      >
+                        Register
+                      </NavLink>
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden flex items-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            onClick={() => setMobileMenuOpen(true)}
+            aria-label="Toggle mobile menu"
+          >
+            <img src={assets.menu_icon} alt="Menu" className="w-6 h-6" />
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", stiffness: 80, damping: 20 }}
+            className="fixed inset-0 z-50 md:hidden"
+          >
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+
+            {/* Sliding Panel */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 100, damping: 18 }}
+              className="absolute right-0 top-0 h-full w-72 bg-gradient-to-b from-sky-50 via-orange-50 to-red-50 shadow-2xl rounded-l-2xl flex flex-col"
+            >
+              {/* Header with Close */}
+              <div className="flex justify-between items-center p-4 border-b border-gray-200">
+                <h3 className="text-lg font-bold text-gray-800">Menu</h3>
                 <button
-                  className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm ${theme === 'day' ? 'hover:bg-gray-100 text-gray-800' : 'hover:bg-gray-700 text-gray-200'} transition-all duration-200`}
-                  onClick={() => {
-                    navigate("/history");
-                    setShowDropdown(false);
-                  }}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2 rounded-full hover:bg-gray-100 transition"
+                  aria-label="Close mobile menu"
                 >
-                  History
-                </button>
-                <button
-                  className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm ${theme === 'day' ? 'hover:bg-gray-100 text-gray-800' : 'hover:bg-gray-700 text-gray-200'} transition-all duration-200`}
-                  onClick={() => {
-                    navigate("/daily-records");
-                    setShowDropdown(false);
-                  }}
-                >
-                  Daily Records
-                </button>
-                <button
-                  className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm ${theme === 'day' ? 'hover:bg-gray-100 text-gray-800' : 'hover:bg-gray-700 text-gray-200'} transition-all duration-200 rounded-b-lg`}
-                  onClick={handleLogout}
-                >
-                  Logout
+                  <img
+                    src={assets.dropdown_icon}
+                    alt="Close"
+                    className="w-5 h-5 rotate-180"
+                  />
                 </button>
               </div>
-            )}
-          </div>
-        ) : (
-          <button
-            onClick={() => navigate("/login")}
-            className="bg-[#E31837] text-white font-medium text-xs sm:text-sm py-1.5 px-3 sm:py-2 sm:px-4 rounded-full flex items-center gap-1 hover:bg-[#C3152F] hover:scale-105 transition-all duration-300 shadow-md cursor-pointer whitespace-nowrap"
-          >
-            <span className="hidden sm:inline">Login</span>
-            <span className="sm:hidden">Log in</span>
-            <img
-              src={assets.arrow_icon}
-              alt="Arrow"
-              className="w-2.5 h-2.5 sm:w-3 sm:h-3"
-            />
-          </button>
+
+              {/* Scrollable Links */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                {["/", "/collections", "/about", "/contact"].map(
+                  (path, index) => (
+                    <NavLink
+                      key={path}
+                      to={path}
+                      className={({ isActive }) =>
+                        `block w-full text-base font-semibold px-4 py-3 rounded-lg transition-all text-center ${
+                          isActive
+                            ? "bg-red-100 text-red-600 shadow-sm"
+                            : "text-gray-700 hover:bg-gray-100 hover:text-" +
+                              ["sky-600", "orange-600", "red-600", "blue-600"][
+                                index
+                              ]
+                        }`
+                      }
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {["HOME", "COLLECTIONS", "ABOUT", "CONTACT"][index]}
+                    </NavLink>
+                  )
+                )}
+
+                {/* Auth / Account */}
+                <div className="mt-6 border-t pt-4 space-y-2">
+                  {user ? (
+                    <>
+                      <NavLink
+                        to="/account"
+                        className="block w-full text-base font-semibold px-4 py-3 rounded-lg text-center text-gray-700 hover:bg-gray-100 hover:text-red-600"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        My Account
+                      </NavLink>
+                      <NavLink
+                        to="/orders"
+                        className="block w-full text-base font-semibold px-4 py-3 rounded-lg text-center text-gray-700 hover:bg-gray-100 hover:text-red-600"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        My Orders
+                      </NavLink>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-base font-semibold px-4 py-3 rounded-lg text-center text-gray-700 hover:bg-gray-100 hover:text-red-600 transition"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <NavLink
+                        to="/login"
+                        className="block w-full text-base font-semibold px-4 py-3 rounded-lg text-center text-gray-700 hover:bg-gray-100 hover:text-red-600"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Login
+                      </NavLink>
+                      <NavLink
+                        to="/register"
+                        className="block w-full text-base font-semibold px-4 py-3 rounded-lg text-center text-gray-700 hover:bg-gray-100 hover:text-red-600"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Register
+                      </NavLink>
+                    </>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
-      </div>
-    </nav>
+      </AnimatePresence>
+
+      {/* WhatsApp Floating Button */}
+      <a
+        href="https://wa.me/923090005634"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50"
+        aria-label="Contact via WhatsApp"
+      >
+        <motion.img
+          src={assets.whatsapp_icon}
+          alt="WhatsApp"
+          className="w-14 h-14"
+          whileHover={{ scale: 1.1 }}
+          transition={{ duration: 0.3 }}
+        />
+      </a>
+    </header>
   );
 };
 

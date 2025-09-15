@@ -1,321 +1,247 @@
 import React, { useState, useContext } from "react";
-import { assets } from "../assets/assets";
-import { useNavigate } from "react-router-dom";
-import { AppContent } from "../context/AppContext";
-import axios from "axios";
+import { motion } from "framer-motion";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { FiMail, FiLock } from "react-icons/fi";
+import { AppContext } from "../context/AppContext";
 import { toast } from "react-toastify";
+import validator from "validator";
+import Title from "../components/Title";
 
 const Login = () => {
-  const [state, setState] = useState("Login");
-  const [riderType, setRiderType] = useState("Part Timer");
   const [formData, setFormData] = useState({
-    name: "",
     email: "",
     password: "",
   });
-  const [nameError, setNameError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login } = useContext(AppContext);
   const navigate = useNavigate();
-  const { backendUrl, setIsLoggedin, getUserData, theme } =
-    useContext(AppContent);
+  const location = useLocation();
+  const redirectPath =
+    new URLSearchParams(location.search).get("redirect") || "/account";
 
-  const validateForm = () => {
-    if (state === "Sign Up") {
-      if (formData.name.length > 20) {
-        toast.error("Name must be 20 characters or less");
-        return false;
-      }
-      if (!/^[a-zA-Z0-9\s]+$/.test(formData.name)) {
-        toast.error("Name can only contain alphabets, numbers, or spaces");
-        return false;
-      }
-      if (formData.password.length < 8) {
-        toast.error("Password must be at least 8 characters");
-        return false;
-      }
-      if (
-        !/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d!@#$%^&*]*$/.test(formData.password)
-      ) {
-        toast.error(
-          "Password must contain at least one alphabet and one number"
-        );
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-
-    if (name === "name") {
-      if (value.length > 20) {
-        setNameError("Name must be 20 characters or less");
-        return;
-      }
-      if (value && !/^[a-zA-Z0-9\s]+$/.test(value)) {
-        setNameError("Name can only contain alphabets, numbers, or spaces");
-      } else {
-        setNameError("");
-      }
-    } else if (name === "password") {
-      if (value.length > 50) {
-        setPasswordError("Password cannot exceed 50 characters");
-        return;
-      }
-      if (value && value.length < 8) {
-        setPasswordError("Password must be at least 8 characters");
-      } else if (
-        value &&
-        !/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d!@#$%^&*]*$/.test(value)
-      ) {
-        setPasswordError(
-          "Password must contain at least one alphabet and one number"
-        );
-      } else {
-        setPasswordError("");
-      }
-    }
-
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) {
+    setLoading(true);
+
+    // Client-side validation
+    if (!formData.email || !formData.password) {
+      toast.error("Email and password are required");
+      setLoading(false);
       return;
     }
+
+    if (!validator.isEmail(formData.email)) {
+      toast.error("Invalid email format");
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      setLoading(false);
+      return;
+    }
+
     try {
-      if (state === "Sign Up") {
-        const employmentType =
-          riderType === "Part Timer" ? "PartTimer" : "FullTimer";
-        const { data } = await axios.post(`${backendUrl}/api/auth/register`, {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          employmentType,
-        }, { withCredentials: true });
-        if (data.success) {
-          toast.success("OTP sent to your email");
-          navigate("/email-verify", { state: { userId: data.user.id } });
+      const data = await login(formData.email, formData.password);
+      if (data.success) {
+        // Redirect based on account verification status
+        if (data.user.isAccountVerified) {
+          toast.success("Login successful");
+          navigate(redirectPath, { replace: true });
         } else {
-          toast.error(data.message);
+          toast.info("Please verify your email to continue");
+          navigate("/verify-otp", {
+            state: { email: formData.email, userId: data.user?.id },
+            replace: true,
+          });
         }
       } else {
-        const { data } = await axios.post(`${backendUrl}/api/auth/login`, {
-          email: formData.email,
-          password: formData.password,
-        }, { withCredentials: true });
-        if (data.success) {
-          setIsLoggedin(true);
-          sessionStorage.setItem('isLoggedin', 'true');
-          await getUserData();
-          const from = window.location.state?.from?.pathname || "/dashboard";
-          navigate(from, { replace: true });
-        } else {
-          toast.error(data.message);
-        }
+        toast.error(data.message || "Invalid email or password");
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "An error occurred");
+    } catch (err) {
+      console.error("Login error:", err);
+      toast.error(
+        err.response?.data?.message || "Login failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div
-      className={`min-h-screen ${
-        theme === "day" ? "bg-day" : "bg-night text-night-text"
-      } flex items-center justify-center px-4 font-['Poppins',sans-serif]`}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 dark:from-gray-800 dark:via-gray-900 dark:to-black flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-['Poppins',sans-serif]"
     >
-      <div
-        className={`${
-          theme === "day" ? "bg-day-card" : "bg-night-card"
-        } rounded-2xl shadow-xl p-6 w-full max-w-xs border ${
-          theme === "day" ? "border-day" : "border-night"
-        } hover:shadow-2xl transition-shadow duration-300`}
-      >
-        <div className="flex justify-center mb-4 cursor-pointer">
-          <img
-            onClick={() => navigate("/")}
-            src="/logo.png"
-            alt="Logo"
-            className="w-10 sm:w-12 h-auto"
-          />
-        </div>
-        <h2 className="text-xl sm:text-2xl font-bold text-center text-[#006491] mb-2">
-          {state === "Sign Up" ? "Create Account" : "Login"}
-        </h2>
-        <p
-          className={`text-center ${
-            theme === "day" ? "text-day-muted" : "text-night-muted"
-          } text-sm mb-4`}
+      <div className="max-w-md w-full space-y-8">
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-center"
         >
-          {state === "Sign Up"
-            ? "Join to manage your expenses"
-            : "Access your rider expense dashboard"}
-        </p>
-        <div className="flex justify-center gap-2 mb-4">
-          <button
-            onClick={() => setState("Sign Up")}
-            className={`px-3 py-1.5 rounded-full font-medium text-sm text-white cursor-pointer transition-colors duration-300 ${
-              state === "Sign Up"
-                ? "bg-[#E31837] hover:bg-[#c3152f]"
-                : "bg-[#006491] hover:bg-[#004d73]"
-            }`}
-          >
-            Sign Up
-          </button>
-          <button
-            onClick={() => setState("Login")}
-            className={`px-3 py-1.5 rounded-full font-medium text-sm text-white cursor-pointer transition-colors duration-300 ${
-              state === "Login"
-                ? "bg-[#E31837] hover:bg-[#c3152f]"
-                : "bg-[#006491] hover:bg-[#004d73]"
-            }`}
-          >
-            Login
-          </button>
-        </div>
-        <form className="space-y-2.5" onSubmit={handleSubmit}>
-          {state === "Sign Up" && (
-            <div className="space-y-1">
-              <div
-                className={`flex items-center border ${
-                  theme === "day" ? "border-day" : "border-night"
-                } rounded-lg px-2 py-1 focus-within:ring-2 focus-within:ring-[#006491] ${
-                  theme === "day" ? "bg-day-input" : "bg-night-input"
-                }`}
-              >
-                <img
-                  src={assets.person_icon}
-                  alt="Person Icon"
-                  className="w-4 h-4 mr-2"
-                />
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Full Name"
-                  required
-                  maxLength={20}
-                  value={formData.name}
-                  className="w-full outline-none text-sm bg-transparent"
-                  onChange={handleInputChange}
-                />
-              </div>
-              {nameError && (
-                <p className="text-[#E31837] text-xs">{nameError}</p>
-              )}
-            </div>
-          )}
-          <div
-            className={`flex items-center border ${
-              theme === "day" ? "border-day" : "border-night"
-            } rounded-lg px-2 py-1 focus-within:ring-2 focus-within:ring-[#006491] ${
-              theme === "day" ? "bg-day-input" : "bg-night-input"
-            }`}
-          >
-            <img
-              src={assets.mail_icon}
-              alt="Mail Icon"
-              className="w-4 h-4 mr-2"
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email ID"
-              required
-              value={formData.email}
-              className="w-full outline-none text-sm bg-transparent"
-              onChange={handleInputChange}
-            />
-          </div>
-          <div className="space-y-1">
-            <div
-              className={`flex items-center border ${
-                theme === "day" ? "border-day" : "border-night"
-              } rounded-lg px-2 py-1 focus-within:ring-2 focus-within:ring-[#006491] ${
-                theme === "day" ? "bg-day-input" : "bg-night-input"
-              }`}
+          <Title text1="SIGN" text2="IN" />
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+            Or{" "}
+            <Link
+              to="/register"
+              className="text-blue-800 hover:text-blue-800 hover:underline transition-colors duration-200 dark:text-blue-400 dark:hover:text-blue-200"
             >
-              <img
-                src={assets.lock_icon}
-                alt="Lock Icon"
-                className="w-4 h-4 mr-2"
-              />
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                required
-                maxLength={50}
-                value={formData.password}
-                className="w-full outline-none text-sm bg-transparent"
-                onChange={handleInputChange}
-              />
-            </div>
-            {passwordError && (
-              <p className="text-[#E31837] text-xs">{passwordError}</p>
-            )}
-          </div>
-          {state === "Sign Up" && (
-            <div className="space-y-1">
+              create a new account
+            </Link>
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="bg-white shadow-sm border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-4"
+        >
+          <form
+            className="space-y-6"
+            onSubmit={handleSubmit}
+            aria-label="Login form"
+          >
+            <div>
               <label
-                className={`text-sm font-container ${
-                  theme === "day" ? "text-gray-600" : "text-gray-200"
-                }`}
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-900 dark:text-gray-200"
               >
-                Are You:
+                Email address
               </label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRiderType("Full Timer")}
-                  className={`flex-1 px-3 py-1.5 rounded-full font-medium text-sm text-white cursor-pointer transition-colors duration-300 ${
-                    riderType === "Full Timer"
-                      ? "bg-[#E31837] hover:bg-[#c3152f]"
-                      : "bg-[#006491] hover:bg-[#004d73]"
-                  }`}
-                >
-                  Full Timer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRiderType("Part Timer")}
-                  className={`flex-1 px-3 py-1.5 rounded-full font-medium text-sm text-white cursor-pointer transition-colors duration-300 ${
-                    riderType === "Part Timer"
-                      ? "bg-[#E31837] hover:bg-[#c3152f]"
-                      : "bg-[#006491] hover:bg-[#004d73]"
-                  }`}
-                >
-                  Part Timer
-                </button>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiMail
+                    className="h-5 w-5 text-gray-400 dark:text-gray-500"
+                    aria-hidden="true"
+                  />
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="focus:ring-red-500 focus:border-red-500 block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md py-3 border"
+                  placeholder="you@example.com"
+                  aria-describedby="email-error"
+                />
               </div>
             </div>
-          )}
-          {state === "Login" && (
-            <div className="text-right">
-              <button
-                type="button"
-                onClick={() => navigate("/reset-password")}
-                className={`${
-                  theme === "day"
-                    ? "text-[#006491] hover:text-[#004d73]"
-                    : "text-[#45B7D1] hover:text-[#3a8bb1]"
-                } text-sm font-medium transition-colors duration-300 cursor-pointer`}
+
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-900 dark:text-gray-200"
               >
-                Forgot Password?
+                Password
+              </label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiLock
+                    className="h-5 w-5 text-gray-400 dark:text-gray-500"
+                    aria-hidden="true"
+                  />
+                </div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="focus:ring-red-500 focus:border-red-500 block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md py-3 border"
+                  placeholder="••••••••"
+                  aria-describedby="password-error"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 dark:border-gray-600 rounded"
+                  aria-label="Remember me"
+                />
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 block text-sm text-gray-600 dark:text-gray-200"
+                >
+                  Remember me
+                </label>
+              </div>
+
+              <div className="text-sm">
+                <Link
+                  to="/reset-password"
+                  className="font-medium text-[#00308F] hover:text-[#002266] transition-all duration-300"
+                >
+                  Forgot your password?
+                </Link>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-3 w-full py-2 bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600 text-white rounded-2xl text-sm font-medium transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
+                aria-label={loading ? "Logging In" : "Log In"}
+              >
+                <span className="flex justify-center items-center">
+                  {loading ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Logging In...
+                    </>
+                  ) : (
+                    "Log In"
+                  )}
+                </span>
               </button>
             </div>
-          )}
-          <button
-            type="submit"
-            className="w-full bg-[#E31837] text-white font-semibold py-2 rounded-full hover:bg-[#c3152f] transition-colors duration-300 cursor-pointer text-sm"
-          >
-            {state === "Sign Up" ? "Create Account" : "Login"}
-          </button>
-        </form>
+          </form>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

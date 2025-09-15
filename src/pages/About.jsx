@@ -1,125 +1,161 @@
-import React, { useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { AppContent } from "../context/AppContext";
+import React from "react";
+import { motion } from "framer-motion";
+import Title from "../components/Title";
+import TeamMember from "../components/TeamMember";
 import { assets } from "../assets/assets";
 
 const About = () => {
-  const navigate = useNavigate();
-  const { theme } = useContext(AppContent);
+  const team = [
+    {
+      id: 1,
+      name: "Hadeed Haider (Hadi)",
+      role: "Founder & CEO",
+      bio: "Book enthusiast with over 5 years in the books industry.",
+      image: assets.hadi,
+    },
+    {
+      id: 2,
+      name: "Adeel Ul Rehman",
+      role: "Head of Operations",
+      bio: "Ensures our books reach you in perfect condition and on time.",
+      image: assets.adeel,
+    },
+    {
+      id: 3,
+      name: "Abdullah Gujjer",
+      role: "Head Buyer",
+      bio: "Curates our collection to bring you the best books available.",
+      image: assets.abd,
+    },
+  ];
 
   return (
-    <div className={`min-h-screen ${theme === 'day' ? 'bg-day' : 'bg-night text-night-text'} py-6 px-4 sm:px-6 lg:px-8 font-['Poppins',sans-serif]`}>
-      <div className="max-w-7xl mx-auto space-y-12">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 dark:from-gray-800 dark:via-gray-900 dark:to-black"
+    >
+      <div className="max-w-7xl mx-auto">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-[#E31837] to-[#006491] rounded-2xl shadow-lg p-6 sm:p-8 text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            About Rider Expense Manager
-          </h1>
-          <p className="text-sm sm:text-base text-white opacity-90 max-w-3xl mx-auto">
-            Empowering Domino's Pizza riders to take control of their finances with a simple, intuitive app designed to track earnings, manage expenses, and visualize progress.
-          </p>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="mt-6 w-32 sm:w-36 px-4 py-2 text-sm font-semibold text-white bg-[#E31837] rounded-full hover:bg-[#C3152F] hover:scale-105 transition-all duration-300 shadow-md cursor-pointer"
+        <div className="text-center mb-16">
+          <Title text1="OUR" text2="STORY" />
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mt-4 text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto"
           >
-            Get Started
-          </button>
+            At Hadi Books Store, we believe every book is a doorway ✨ to
+            knowledge, to imagination, and to worlds waiting to be discovered.
+          </motion.p>
         </div>
 
-        {/* Motive Section */}
-        <div className={`${theme === 'day' ? 'bg-day-card' : 'bg-night-card'} rounded-2xl shadow-lg p-6 sm:p-8 hover:shadow-xl transition-shadow duration-300 border ${theme === 'day' ? 'border-day' : 'border-night'}`}>
-          <h2 className="text-xl sm:text-2xl font-semibold text-[#45B7D1] mb-6 text-center relative">
-            Our Motive
-            <span className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-16 h-1 bg-[#45B7D1] rounded-full"></span>
-          </h2>
-          <p className={`text-sm sm:text-base ${theme === 'day' ? 'text-gray-600' : 'text-gray-200'} max-w-4xl mx-auto`}>
-            At Rider Expense Manager, our mission is to simplify financial management for Domino's Pizza riders. We understand the challenges of tracking variable income from deliveries and tips, as well as managing expenses like fuel and bike maintenance. Our app provides a user-friendly platform to monitor your daily earnings, visualize your financial trends, and make informed decisions to maximize your savings. Whether you're a full-time or part-time rider, we're here to help you stay on top of your finances with ease.
-          </p>
+        {/* Mission Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch mb-20">
+          {/* Left Box */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="bg-white shadow-sm border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-6 flex flex-col justify-center h-96"
+          >
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-200 mb-6">
+              Our Mission
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              To connect readers with books that inspire, educate, and
+              entertain. We believe in the transformative power of reading and
+              strive to make quality literature accessible to everyone.
+            </p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Our carefully curated selection includes everything from timeless
+              classics to contemporary bestsellers, ensuring there's something
+              for every type of reader.
+            </p>
+          </motion.div>
+
+          {/* Right Box */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="relative bg-white shadow-sm border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 h-96"
+          >
+            <img
+              src={assets.shop}
+              alt="Our Mission"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+              <h3 className="text-white text-xl font-bold">
+                Curating Knowledge Since 2010
+              </h3>
+            </div>
+          </motion.div>
         </div>
 
-        {/* How It Works Section */}
-        <div className={`${theme === 'day' ? 'bg-day-card' : 'bg-night-card'} rounded-2xl shadow-lg p-6 sm:p-8 hover:shadow-xl transition-shadow duration-300 border ${theme === 'day' ? 'border-day' : 'border-night'}`}>
-          <h2 className="text-xl sm:text-2xl font-semibold text-[#45B7D1] mb-6 text-center relative">
-            How It Works
-            <span className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-16 h-1 bg-[#45B7D1] rounded-full"></span>
+        {/* Values Section */}
+        <div className="mb-20">
+          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-gray-200 mb-12">
+            Our Values
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-[#006491] mb-2">
-                1. Track Your Daily Earnings
-              </h3>
-              <p className={`text-sm sm:text-base ${theme === 'day' ? 'text-gray-600' : 'text-gray-200'}`}>
-                Log your daily deliveries and tips effortlessly. The app calculates your earnings based on each delivery (Rs. 45 per delivery) and tips, giving you a clear picture of your income without the clutter of fixed salaries or penalties.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-[#006491] mb-2">
-                2. Manage Expenses
-              </h3>
-              <p className={`text-sm sm:text-base ${theme === 'day' ? 'text-gray-600' : 'text-gray-200'}`}>
-                Record expenses like fuel, maintenance, or other costs directly in the app. See how your spending impacts your savings, helping you identify areas to cut back and save more.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-[#006491] mb-2">
-                3. Visualize Your Progress
-              </h3>
-              <p className={`text-sm sm:text-base ${theme === 'day' ? 'text-gray-600' : 'text-gray-200'}`}>
-                Use interactive charts to view your earnings, tips, and expenses over any date range. Missing a day's data? The charts show a dip to zero, keeping your trends accurate and easy to understand.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-[#006491] mb-2">
-                4. Stay in Control
-              </h3>
-              <p className={`text-sm sm:text-base ${theme === 'day' ? 'text-gray-600' : 'text-gray-200'}`}>
-                Review your performance with summaries of total earnings, expenses, savings, tips, deliveries, and days off. Filter data to focus on what matters most, and make smarter financial choices.
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Quality",
+                description:
+                  "We source only the best books from reputable publishers and authors.",
+                icon: "⭐",
+              },
+              {
+                title: "Community",
+                description:
+                  "We support local authors and host book clubs to foster reading communities.",
+                icon: "🤝",
+              },
+              {
+                title: "Sustainability",
+                description:
+                  "We use eco-friendly packaging and support book recycling programs.",
+                icon: "🌱",
+              },
+            ].map((value, index) => (
+              <motion.div
+                key={value.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="bg-white shadow-sm border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-6"
+              >
+                <div className="text-4xl mb-4">{value.icon}</div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-200 mb-2">
+                  {value.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {value.description}
+                </p>
+              </motion.div>
+            ))}
           </div>
         </div>
 
-        {/* Images Section */}
-        <div className={`${theme === 'day' ? 'bg-day-card' : 'bg-night-card'} rounded-2xl shadow-lg p-6 sm:p-8 hover:shadow-xl transition-shadow duration-300 border ${theme === 'day' ? 'border-day' : 'border-night'}`}>
-          <h2 className="text-xl sm:text-2xl font-semibold text-[#45B7D1] mb-6 text-center relative">
-            See It in Action
-            <span className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-16 h-1 bg-[#45B7D1] rounded-full"></span>
+        {/* Team Section */}
+        <div>
+          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-gray-200 mb-12">
+            Meet Our Team
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="text-center">
-              <img
-                src={assets.p5}
-                alt="Track Your Earnings"
-                className="w-full h-48 sm:h-64 object-cover rounded-xl shadow-sm hover:scale-105 hover:shadow-xl transition-all duration-300"
-              />
-              <p className={`mt-2 text-sm sm:text-base ${theme === 'day' ? 'text-gray-600' : 'text-gray-200'}`}>
-                Track Your Earnings
-              </p>
-            </div>
-            <div className="text-center">
-              <img
-                src={assets.p3}
-                alt="Visualize Your Progress"
-                className="w-full h-48 sm:h-64 object-cover rounded-xl shadow-sm hover:scale-105 hover:shadow-xl transition-all duration-300"
-              />
-              <p className={`mt-2 text-sm sm:text-base ${theme === 'day' ? 'text-gray-600' : 'text-gray-200'}`}>
-                Visualize Your Progress
-              </p>
-            </div>
-            <div className="text-center">
-              <img
-                src={assets.p4}
-                alt="Manage Expenses"
-                className="w-full h-48 sm:h-64 object-cover rounded-xl shadow-sm hover:scale-105 hover:shadow-xl transition-all duration-300"
-              />
-              <p className={`mt-2 text-sm sm:text-base ${theme === 'day' ? 'text-gray-600' : 'text-gray-200'}`}>
-                Manage Expenses
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {team.map((member, index) => (
+              <TeamMember key={member.id} member={member} index={index} />
+            ))}
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
