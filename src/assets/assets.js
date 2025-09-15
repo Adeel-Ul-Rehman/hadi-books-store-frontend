@@ -29,7 +29,7 @@ import tcs from "./tcs.png";
 import trax from "./trax.png";
 import postX from "./postX.png";
 import leopard from "./leopard.png";
-import pakPost from "./pakPost.png";
+import pakPost from "./pakpost.png";
 export const assets = {
   arrow_icon,
   lock_icon,
