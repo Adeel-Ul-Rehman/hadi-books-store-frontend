@@ -2,11 +2,11 @@ import React, { useState, useEffect, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import axios from "axios";
 import { ShopContext } from "../context/ShopContext";
+import { AppContext } from "../context/AppContext";
 
 const Hero = () => {
-  const { apiUrl } = useContext(ShopContext);
+  const { apiRequest } = useContext(AppContext);
   const [heroImages, setHeroImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -16,13 +16,11 @@ const Hero = () => {
   useEffect(() => {
     const fetchHeroImages = async () => {
       try {
-        const response = await axios.get(`${apiUrl}/hero/`, {
-          withCredentials: true,
-        });
-        if (response.data.success) {
-          setHeroImages(response.data.data || []);
+        const data = await apiRequest('get', '/api/hero/');
+        if (data.success) {
+          setHeroImages(data.data || []);
         } else {
-          setError(response.data.message || "Failed to fetch hero images");
+          setError(data.message || "Failed to fetch hero images");
           setHeroImages([]);
         }
       } catch (error) {
@@ -35,15 +33,15 @@ const Hero = () => {
     };
 
     fetchHeroImages();
-  }, [apiUrl]);
+  }, [apiRequest]);
 
   // Automatic image change
   useEffect(() => {
-    if (heroImages.length === 0) return;
+    if (heroImages.length <= 1) return;
 
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
-    }, 3000);
+    }, 5000); // Increased to 5 seconds for better UX
 
     return () => clearInterval(interval);
   }, [heroImages.length]);
@@ -64,6 +62,20 @@ const Hero = () => {
     animate: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: -100 },
   };
+
+  // Fallback hero images if API fails
+  const fallbackImages = [
+    {
+      imageUrl: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&h=400&fit=crop",
+      altText: "Book Collection"
+    },
+    {
+      imageUrl: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=600&h=400&fit=crop",
+      altText: "Reading Books"
+    }
+  ];
+
+  const displayImages = heroImages.length > 0 ? heroImages : fallbackImages;
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 min-h-[500px] flex items-center py-8 px-4 sm:py-12 sm:px-6 lg:px-8">
@@ -154,18 +166,12 @@ const Hero = () => {
                     ></path>
                   </svg>
                 </div>
-              ) : error || heroImages.length === 0 ? (
-                <div className="flex items-center justify-center h-full bg-gray-200 text-gray-600 text-sm sm:text-base px-2 text-center">
-                  {error || "No hero images available"}
-                </div>
               ) : (
                 <AnimatePresence initial={false}>
                   <motion.img
                     key={currentImageIndex}
-                    src={heroImages[currentImageIndex].imageUrl}
-                    alt={
-                      heroImages[currentImageIndex].altText || "Book Collection"
-                    }
+                    src={displayImages[currentImageIndex]?.imageUrl || fallbackImages[0].imageUrl}
+                    alt={displayImages[currentImageIndex]?.altText || "Book Collection"}
                     className="w-full h-full object-cover absolute top-0 left-0"
                     variants={reelVariants}
                     initial="initial"
@@ -174,29 +180,31 @@ const Hero = () => {
                     transition={{ duration: 0.6, ease: "easeInOut" }}
                     loading="lazy"
                     onError={(e) => {
-                      e.target.src =
-                        "https://via.placeholder.com/600x400?text=Image+Not+Found";
+                      e.target.src = fallbackImages[0].imageUrl;
                     }}
                   />
                 </AnimatePresence>
               )}
-              <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 bg-white p-2 sm:p-3 rounded-lg shadow-md text-xs sm:text-sm">
-                <div className="font-medium text-gray-900">Bestsellers</div>
-                <div className="text-gray-500">{heroImages.length} Titles</div>
-              </div>
+              
+              {displayImages.length > 0 && (
+                <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 bg-white p-2 sm:p-3 rounded-lg shadow-md text-xs sm:text-sm">
+                  <div className="font-medium text-gray-900">Bestsellers</div>
+                  <div className="text-gray-500">{displayImages.length} Titles</div>
+                </div>
+              )}
 
-              {!loading && heroImages.length > 1 && (
+              {displayImages.length > 1 && (
                 <>
                   <button
                     onClick={goToPrevious}
-                    className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-white p-1 sm:p-2 rounded-full shadow-md hover:bg-gray-100 transition-all duration-300"
+                    className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-white p-1 sm:p-2 rounded-full shadow-md hover:bg-gray-100 transition-all duration-300 z-10"
                     aria-label="Previous book"
                   >
                     <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800" />
                   </button>
                   <button
                     onClick={goToNext}
-                    className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-white p-1 sm:p-2 rounded-full shadow-md hover:bg-gray-100 transition-all duration-300"
+                    className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-white p-1 sm:p-2 rounded-full shadow-md hover:bg-gray-100 transition-all duration-300 z-10"
                     aria-label="Next book"
                   >
                     <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800" />

@@ -38,22 +38,20 @@ const App = () => {
 
   // Fetch hero images when context is ready
   useEffect(() => {
-    if (isContextReady && fetchHeroImages) {
-      console.log('ShopContext initialized, fetching hero images...');
+    if (fetchHeroImages) {
       fetchHeroImages();
-    } else if (!isContextReady) {
-      console.warn('ShopContext not yet available, waiting for initialization...');
     }
-  }, [isContextReady, fetchHeroImages]);
+  }, [fetchHeroImages]);
+
 
   // Check authentication on mount and location change
   useEffect(() => {
-    if (isContextReady && isAuthenticated) {
+    if (isAuthenticated) {
       isAuthenticated().catch(err => {
         console.error('Initial auth check failed:', err);
       });
     }
-  }, [isContextReady, isAuthenticated, location.pathname]);
+  }, [isAuthenticated, location.pathname]);
 
   return (
     <AppContextProvider>

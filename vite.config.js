@@ -17,21 +17,32 @@ export default defineConfig({
           react: ['react', 'react-dom'],
           chartjs: ['chart.js', 'react-chartjs-2'],
           router: ['react-router-dom'],
+          animations: ['framer-motion'],
+          icons: ['react-icons'],
+          notifications: ['react-toastify'],
         },
       },
     },
   },
 
-  // Server configuration with proxy
+  // Server configuration with proxy - UPDATED
   server: {
     port: 3000,
-    strictPort: true, // Exit if port is in use
+    strictPort: true,
     proxy: {
       '/api': {
-        target: 'https://hadi-books-store-backend-2.onrender.com',
+        target: 'https://hadi-books-store-backend-4.onrender.com',
         changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        secure: false, // Changed to false for Render.com compatibility
+        rewrite: (path) => path.replace(/^\/api/, '/api'), // Keep /api prefix for backend
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('Proxy error:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log('Sending Request to the Target:', req.method, req.url);
+          });
+        },
       },
     },
   },
@@ -40,12 +51,20 @@ export default defineConfig({
   preview: {
     port: 3000,
     strictPort: true,
+    proxy: {
+      '/api': {
+        target: 'https://hadi-books-store-backend-4.onrender.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
+      },
+    },
   },
 
   // Base path configuration
-  base: '/', // Works for both root domain and subpaths
+  base: '/',
 
-  // Optimize dependencies
+  // Optimize dependencies - UPDATED
   optimizeDeps: {
     include: [
       'react',
@@ -53,6 +72,19 @@ export default defineConfig({
       'react-router-dom',
       'chart.js',
       'react-chartjs-2',
+      'framer-motion',
+      'react-icons',
+      'react-toastify',
+      'axios',
+      'validator',
     ],
+    exclude: [],
+  },
+
+  // Resolve configuration
+  resolve: {
+    alias: {
+      // Add any necessary aliases here
+    },
   },
 });

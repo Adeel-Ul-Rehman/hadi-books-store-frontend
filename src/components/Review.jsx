@@ -22,7 +22,7 @@ const Review = ({ productId, isAuthenticated }) => {
 
       const data = await apiRequest(
         "get",
-        `/reviews/product/${productId}?page=${pageNum}&limit=3`
+        `/api/reviews/product/${productId}?page=${pageNum}&limit=3`
       );
 
       if (data.success) {
@@ -74,7 +74,7 @@ const Review = ({ productId, isAuthenticated }) => {
 
     setSubmitting(true);
     try {
-      const data = await apiRequest("post", "/reviews/add", {
+      const data = await apiRequest("post", "/api/reviews/add", {
         productId,
         userId: user.id,
         rating,

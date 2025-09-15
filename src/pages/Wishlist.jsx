@@ -16,14 +16,21 @@ const Wishlist = () => {
 
   const handleAddToCart = async (productId) => {
     const success = await addToCart(productId, null, 1);
-    if (success) toast.success('Added to cart');
-    else toast.error('Failed to add to cart');
+    if (success) {
+      toast.success('Added to cart');
+    } else {
+      toast.error('Failed to add to cart');
+    }
   };
 
   const handleRemoveFromWishlist = async (productId) => {
     const success = await removeFromWishlist(productId);
-    if (success) toast.info('Removed from wishlist');
-    else toast.error('Failed to remove from wishlist');
+    if (success) {
+      toast.info('Removed from wishlist');
+      await fetchWishlist(); // Refresh wishlist after removal
+    } else {
+      toast.error('Failed to remove from wishlist');
+    }
   };
 
   return (

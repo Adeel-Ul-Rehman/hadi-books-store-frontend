@@ -1,5 +1,4 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import axios from 'axios';
 import { AppContext } from './AppContext';
 import { toast } from 'react-toastify';
 
@@ -15,7 +14,6 @@ const ShopContextProvider = ({ children }) => {
   const [wishlistItems, setWishlistItems] = useState([]);
   const [currency] = useState('Rs.');
   const [loading, setLoading] = useState(false);
-  const apiUrl = '/api'; // Use Vite proxy prefix for same-origin requests
 
   // Initialize from localStorage for non-auth users, or fetch for auth users
   useEffect(() => {
@@ -25,6 +23,7 @@ const ShopContextProvider = ({ children }) => {
       setWishlistItems(localWishlist.map(id => ({ productId: id })));
       setCartItems(localCart);
     } else {
+      // Fetch cart and wishlist only if user is authenticated
       fetchWishlist();
       fetchCart();
     }
@@ -38,9 +37,9 @@ const ShopContextProvider = ({ children }) => {
       if (search) params.append('search', search);
       if (bestseller) params.append('bestseller', 'true');
       params.append('page', '1');
-      params.append('limit', '100');
+      params.append('limit', '120');
 
-      const data = await apiRequest('get', `/products/get?${params.toString()}`);
+      const data = await apiRequest('get', `/api/products/get?${params.toString()}`);
       if (data.success) {
         const productsWithSubCategories = data.products.map(product => ({
           ...product,
@@ -59,74 +58,38 @@ const ShopContextProvider = ({ children }) => {
   };
 
   const fetchCart = async () => {
+    if (!user) return; // Don't fetch if no user
+    
     setLoading(true);
     try {
-      if (!user) {
-        const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
-        setCartItems(localCart);
-        return;
-      }
-
-      const data = await apiRequest('get', `/cart/get/${user.id}`);
+      const data = await apiRequest('get', `/api/cart/get/${user.id}`);
       if (data.success) {
         setCartItems(data.cart?.items || []);
       } else {
-        // On error, keep local cart data if available (fallback for sync issues)
-        const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
-        if (localCart.length > 0) {
-          setCartItems(localCart);
-          toast.warn('Using local cart data due to sync issue');
-        } else {
-          setCartItems([]);
-        }
+        setCartItems([]);
       }
     } catch (error) {
       console.error('Fetch Cart Error:', error);
-      // On error, keep local cart data if available
-      const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
-      if (localCart.length > 0) {
-        setCartItems(localCart);
-        toast.warn('Using local cart data due to sync issue');
-      } else {
-        setCartItems([]);
-      }
+      setCartItems([]);
     } finally {
       setLoading(false);
     }
   };
 
   const fetchWishlist = async () => {
+    if (!user) return; // Don't fetch if no user
+    
     setLoading(true);
     try {
-      if (!user) {
-        const localWishlist = JSON.parse(localStorage.getItem('localWishlist') || '[]');
-        setWishlistItems(localWishlist.map(id => ({ productId: id })));
-        return;
-      }
-
-      const data = await apiRequest('get', `/wishlist/get/${user.id}`);
+      const data = await apiRequest('get', `/api/wishlist/get/${user.id}`);
       if (data.success) {
         setWishlistItems(data.wishlist?.items || []);
       } else {
-        // On error, keep local wishlist data if available
-        const localWishlist = JSON.parse(localStorage.getItem('localWishlist') || '[]');
-        if (localWishlist.length > 0) {
-          setWishlistItems(localWishlist.map(id => ({ productId: id })));
-          toast.warn('Using local wishlist data due to sync issue');
-        } else {
-          setWishlistItems([]);
-        }
+        setWishlistItems([]);
       }
     } catch (error) {
       console.error('Fetch Wishlist Error:', error);
-      // On error, keep local wishlist data if available
-      const localWishlist = JSON.parse(localStorage.getItem('localWishlist') || '[]');
-      if (localWishlist.length > 0) {
-        setWishlistItems(localWishlist.map(id => ({ productId: id })));
-        toast.warn('Using local wishlist data due to sync issue');
-      } else {
-        setWishlistItems([]);
-      }
+      setWishlistItems([]);
     } finally {
       setLoading(false);
     }
@@ -142,6 +105,7 @@ const ShopContextProvider = ({ children }) => {
       }
 
       if (!user) {
+        // Local storage for guest users
         const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
         const existingItemIndex = localCart.findIndex(item => 
           item.productId === productId && item.format === format
@@ -166,31 +130,16 @@ const ShopContextProvider = ({ children }) => {
         return true;
       }
 
-      // Optimistic update for logged-in users
-      const existingItem = cartItems.find(item => item.productId === productId);
-      let newCartItems;
-      if (existingItem) {
-        newCartItems = cartItems.map(item =>
-          item.productId === productId ? { ...item, quantity: item.quantity + quantity } : item
-        );
-      } else {
-        newCartItems = [...cartItems, { productId, quantity, price: product.price }];
-      }
-      setCartItems(newCartItems);
-
-      const data = await apiRequest('post', '/cart/add', { productId, quantity });
+      // For logged-in users - call API
+      const data = await apiRequest('post', '/api/cart/add', { productId, quantity });
       if (data.success) {
-        await fetchCart();
+        await fetchCart(); // Refresh cart from server
         return true;
-      } else {
-        setCartItems(prevCartItems);
-        toast.error(data.message || 'Failed to add to cart');
-        return false;
       }
+      return false;
     } catch (error) {
-      setCartItems(prevCartItems);
       console.error('Add to Cart Error:', error);
-      toast.error('Failed to add to cart');
+      setCartItems(prevCartItems);
       return false;
     }
   };
@@ -208,22 +157,15 @@ const ShopContextProvider = ({ children }) => {
         return true;
       }
 
-      const newCartItems = cartItems.filter(item => item.productId !== productId);
-      setCartItems(newCartItems);
-
-      const data = await apiRequest('post', '/cart/remove', { productId });
+      const data = await apiRequest('delete', '/api/cart/remove', { productId });
       if (data.success) {
         await fetchCart();
         return true;
-      } else {
-        setCartItems(prevCartItems);
-        toast.error(data.message || 'Failed to remove from cart');
-        return false;
       }
+      return false;
     } catch (error) {
-      setCartItems(prevCartItems);
       console.error('Remove from Cart Error:', error);
-      toast.error('Failed to remove from cart');
+      setCartItems(prevCartItems);
       return false;
     }
   };
@@ -241,24 +183,15 @@ const ShopContextProvider = ({ children }) => {
         return true;
       }
 
-      const newCartItems = cartItems.map(item =>
-        item.productId === productId ? { ...item, quantity } : item
-      );
-      setCartItems(newCartItems);
-
-      const data = await apiRequest('post', '/cart/update', { productId, quantity });
+      const data = await apiRequest('put', '/api/cart/update', { productId, quantity });
       if (data.success) {
         await fetchCart();
         return true;
-      } else {
-        setCartItems(prevCartItems);
-        toast.error(data.message || 'Failed to update cart');
-        return false;
       }
+      return false;
     } catch (error) {
-      setCartItems(prevCartItems);
       console.error('Update Cart Error:', error);
-      toast.error('Failed to update cart');
+      setCartItems(prevCartItems);
       return false;
     }
   };
@@ -292,36 +225,25 @@ const ShopContextProvider = ({ children }) => {
       }
 
       const isInWishlist = wishlistItems.some(item => item.productId === productId);
-      let newWishlistItems;
+      
       if (isInWishlist) {
-        newWishlistItems = wishlistItems.filter(item => item.productId !== productId);
-        setWishlistItems(newWishlistItems);
-        const data = await apiRequest('post', '/wishlist/remove', { productId });
+        const data = await apiRequest('delete', '/api/wishlist/remove', { productId });
         if (data.success) {
           await fetchWishlist();
           return true;
-        } else {
-          setWishlistItems(prevWishlistItems);
-          toast.error(data.message || 'Failed to remove from wishlist');
-          return false;
         }
+        return false;
       } else {
-        newWishlistItems = [...wishlistItems, { productId }];
-        setWishlistItems(newWishlistItems);
-        const data = await apiRequest('post', '/wishlist/add', { productId });
+        const data = await apiRequest('post', '/api/wishlist/add', { productId });
         if (data.success) {
           await fetchWishlist();
           return true;
-        } else {
-          setWishlistItems(prevWishlistItems);
-          toast.error(data.message || 'Failed to add to wishlist');
-          return false;
         }
+        return false;
       }
     } catch (error) {
       setWishlistItems(prevWishlistItems);
       console.error('Toggle Wishlist Error:', error);
-      toast.error('Failed to toggle wishlist');
       return false;
     }
   };
@@ -337,22 +259,15 @@ const ShopContextProvider = ({ children }) => {
         return true;
       }
 
-      const newWishlistItems = wishlistItems.filter(item => item.productId !== productId);
-      setWishlistItems(newWishlistItems);
-
-      const data = await apiRequest('post', '/wishlist/remove', { productId });
+      const data = await apiRequest('delete', '/api/wishlist/remove', { productId });
       if (data.success) {
         await fetchWishlist();
         return true;
-      } else {
-        setWishlistItems(prevWishlistItems);
-        toast.error(data.message || 'Failed to remove from wishlist');
-        return false;
       }
+      return false;
     } catch (error) {
       setWishlistItems(prevWishlistItems);
       console.error('Remove from Wishlist Error:', error);
-      toast.error('Failed to remove from wishlist');
       return false;
     }
   };
@@ -382,7 +297,7 @@ const ShopContextProvider = ({ children }) => {
 
   const getProductReviews = async (productId, page = 1, limit = 10) => {
     try {
-      const data = await apiRequest('get', `/reviews/product/${productId}?page=${page}&limit=${limit}`);
+      const data = await apiRequest('get', `/api/reviews/product/${productId}?page=${page}&limit=${limit}`);
       if (data.success) {
         return {
           reviews: data.reviews || [],
@@ -398,89 +313,74 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
-  const calculateCheckoutTotals = async (items) => {
-    try {
-      if (!user) {
-        const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
-        let subtotal = 0;
-        const validatedItems = localCart.map(item => {
-          const product = products.find(p => p.id === item.productId);
-          if (!product) return null;
-          const itemTotal = product.price * item.quantity;
-          subtotal += itemTotal;
-          return {
-            productId: item.productId,
-            quantity: item.quantity,
-            price: product.price,
-            originalPrice: product.originalPrice,
-            productName: product.name,
-            productImage: product.image,
-          };
-        }).filter(item => item !== null);
-        const taxes = subtotal * TAX_RATE;
-        const shippingFee = SHIPPING_FEE;
-        const total = subtotal + taxes + shippingFee;
-        return { success: true, subtotal, taxes, shippingFee, total, items: validatedItems };
-      }
+// Add these functions to your existing ShopContext
 
-      const data = await apiRequest('post', '/checkout/calculate', { 
-        items,
-        taxes: items.reduce((sum, item) => {
-          const product = products.find(p => p.id === item.productId);
-          return sum + (product ? product.price * item.quantity : 0);
-        }, 0) * TAX_RATE,
-        shippingFee: SHIPPING_FEE,
-      });
-      if (data.success) {
-        return data;
-      } else {
-        return { success: false, message: data.message || 'Failed to calculate checkout totals' };
-      }
-    } catch (error) {
-      console.error('Calculate Checkout Totals Error:', error);
-      return { success: false, message: 'Failed to calculate checkout totals' };
-    }
-  };
+const uploadPaymentProof = async (orderId, file) => {
+  setLoading(true);
+  if (!orderId || !file) {
+    setLoading(false);
+    return { success: false, message: 'Order ID and proof file are required' };
+  }
 
-  const processCheckout = async (checkoutData) => {
-    try {
-      if (!user) {
-        return { success: false, message: 'User not authenticated' };
-      }
+  const formData = new FormData();
+  formData.append('orderId', orderId);
+  formData.append('proof', file);
 
-      const { paymentMethod, onlinePaymentOption, ...rest } = checkoutData;
-      const data = await apiRequest('post', '/checkout/process', {
-        ...rest,
-        paymentMethod,
-        onlinePaymentOption: paymentMethod === 'online' ? onlinePaymentOption : undefined,
-        taxes: rest.items.reduce((sum, item) => {
-          const product = products.find(p => p.id === item.productId);
-          return sum + (product ? product.price * item.quantity : 0);
-        }, 0) * TAX_RATE,
-        shippingFee: SHIPPING_FEE,
-      });
-      if (data.success) {
-        if (data.updatedUser) {
-          setUser(data.updatedUser);
-          localStorage.setItem('user', JSON.stringify(data.updatedUser));
-        }
-        setCartItems([]);
-        localStorage.removeItem('localCart');
-        return data;
-      } else {
-        return { success: false, message: data.message || 'Failed to process checkout' };
-      }
-    } catch (error) {
-      console.error('Process Checkout Error:', error);
-      return { success: false, message: 'Failed to process checkout' };
-    }
-  };
+  try {
+    const data = await apiRequest('post', '/api/checkout/upload-proof', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+  } catch (error) {
+    console.error('Upload Payment Proof Error:', error);
+    return { success: false, message: error.response?.data?.message || 'Failed to upload payment proof' };
+  } finally {
+    setLoading(false);
+  }
+};
+
+const calculateCheckout = async (items) => {
+  try {
+    const data = await apiRequest('post', '/api/checkout/calculate', { 
+      items,
+      taxes: items.reduce((sum, item) => {
+        const product = products.find(p => p.id === item.productId);
+        return sum + (product ? product.price * item.quantity : 0);
+      }, 0) * TAX_RATE,
+      shippingFee: SHIPPING_FEE,
+    });
+    return data;
+  } catch (error) {
+    console.error('Calculate Checkout Error:', error);
+    return { success: false, message: 'Failed to calculate checkout totals' };
+  }
+};
+
+const processCheckout = async (checkoutData) => {
+  try {
+    const { paymentMethod, onlinePaymentOption, ...rest } = checkoutData;
+    const data = await apiRequest('post', '/api/checkout/process', {
+      ...rest,
+      paymentMethod,
+      onlinePaymentOption: paymentMethod === 'online' ? onlinePaymentOption : undefined,
+      taxes: rest.items.reduce((sum, item) => {
+        const product = products.find(p => p.id === item.productId);
+        return sum + (product ? product.price * item.quantity : 0);
+      }, 0) * TAX_RATE,
+      shippingFee: SHIPPING_FEE,
+    });
+    return data;
+  } catch (error) {
+    console.error('Process Checkout Error:', error);
+    return { success: false, message: 'Failed to process checkout' };
+  }
+};
 
   const fetchHeroImages = async () => {
     try {
-      const data = await apiRequest('get', '/hero/');
+      const data = await apiRequest('get', '/api/hero/');
       if (data.success) {
-        return data.data || []; // Backend returns 'data' not 'images'
+        return data.data || [];
       }
       return [];
     } catch (error) {
@@ -493,38 +393,37 @@ const ShopContextProvider = ({ children }) => {
     fetchProducts();
   }, [user]);
 
-  return (
-    <ShopContext.Provider
-      value={{
-        products,
-        cartItems,
-        wishlistItems,
-        currency,
-        addToCart,
-        removeFromCart,
-        updateCart,
-        toggleWishlistItem,
-        removeFromWishlist,
-        isInWishlist,
-        getCartCount,
-        getWishlistCount,
-        getProductReviews,
-        getCartTotal,
-        fetchProducts,
-        fetchCart,
-        fetchWishlist,
-        loading,
-        calculateCheckoutTotals,
-        processCheckout,
-        apiUrl,
-        TAX_RATE,
-        SHIPPING_FEE,
-        fetchHeroImages,
-      }}
-    >
-      {children}
-    </ShopContext.Provider>
-  );
+return (
+  <ShopContext.Provider
+    value={{
+      products,
+      cartItems,
+      wishlistItems,
+      currency,
+      addToCart,
+      removeFromCart,
+      updateCart,
+      toggleWishlistItem,
+      removeFromWishlist,
+      isInWishlist,
+      getCartCount,
+      getWishlistCount,
+      getProductReviews,
+      getCartTotal,
+      fetchProducts,
+      fetchCart,
+      fetchWishlist,
+      loading,
+      processCheckout,         // ADD THIS
+      uploadPaymentProof,      // ADD THIS
+      calculateCheckout,       // ADD THIS (if different from calculateCheckoutTotals)
+      TAX_RATE,
+      SHIPPING_FEE,
+      fetchHeroImages,
+    }}
+  >
+    {children}
+  </ShopContext.Provider>
+);
 };
-
 export default ShopContextProvider;

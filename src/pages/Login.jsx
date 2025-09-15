@@ -69,9 +69,10 @@ const Login = () => {
       }
     } catch (err) {
       console.error("Login error:", err);
-      toast.error(
-        err.response?.data?.message || "Login failed. Please try again."
-      );
+      // Don't show error message for 401 (already handled in context)
+      if (err.response?.status !== 401) {
+        toast.error(err.response?.data?.message || "Login failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

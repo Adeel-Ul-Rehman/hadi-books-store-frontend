@@ -97,7 +97,11 @@ const Cart = () => {
       return;
     }
     const success = await updateCart(productId, format, newQuantity);
-    if (success) toast.success("Cart updated");
+    if (success) {
+      toast.success("Cart updated");
+    } else {
+      toast.error("Failed to update cart");
+    }
   };
 
   const handleRemoveItem = async (productId, format) => {
@@ -105,16 +109,29 @@ const Cart = () => {
     const success = await removeFromCart(productId, format);
     if (success) {
       if (user) await fetchCart();
+      toast.success("Item removed from cart");
       setTimeout(() => {
         setIsAnimating(false);
       }, 300);
-    } else setIsAnimating(false);
+    } else {
+      setIsAnimating(false);
+      toast.error("Failed to remove item");
+    }
   };
 
   const handleImageError = (e) => {
     if (e.target.src !== "https://placehold.co/300x300?text=Book+Image") {
       e.target.src = "https://placehold.co/300x300?text=Book+Image";
       e.target.onerror = null;
+    }
+  };
+
+  const handleAddToCart = async (productId, format = null, quantity = 1) => {
+    const success = await addToCart(productId, format, quantity);
+    if (success) {
+      toast.success("Added to cart");
+    } else {
+      toast.error("Failed to add to cart");
     }
   };
 
@@ -218,14 +235,20 @@ const Cart = () => {
                             <div className="flex items-center space-x-2">
                               <p className="text-xs text-gray-500">
                                 {currency}
-                                {(item.product?.price || item.price || 0).toFixed(
-                                  2
-                                )}
+                                {(
+                                  item.product?.price ||
+                                  item.price ||
+                                  0
+                                ).toFixed(2)}
                               </p>
                               {item.product?.originalPrice && (
                                 <p className="text-xs text-gray-500 line-through">
                                   {currency}
-                                  {(item.product?.originalPrice || item.originalPrice || 0).toFixed(2)}
+                                  {(
+                                    item.product?.originalPrice ||
+                                    item.originalPrice ||
+                                    0
+                                  ).toFixed(2)}
                                 </p>
                               )}
                             </div>
@@ -386,7 +409,8 @@ const Cart = () => {
                         </button>
                       </div>
                       <p className="text-gray-600 mb-6">
-                        Please log in or register to proceed with checkout and place your order.
+                        Please log in or register to proceed with checkout and
+                        place your order.
                       </p>
                       <div className="flex items-center justify-center gap-4">
                         <button
@@ -396,7 +420,7 @@ const Cart = () => {
                           Log In
                         </button>
                         <button
-                          onClick={() => navigate("/register?redirect=/cart")}
+                          onClick={() => navigate("/register?redirect=/login")}
                           className="px-6 py-3 cursor-pointer bg-[#00308F] text-white font-semibold rounded-lg shadow-md hover:bg-[#002266] transition-all duration-300 hover:shadow-lg text-center"
                         >
                           Register
@@ -428,7 +452,7 @@ const Cart = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
               {products
                 .filter(
-                  (item) => 
+                  (item) =>
                     !cartData.some((cartItem) => cartItem.productId === item.id)
                 )
                 .slice(0, 4)
@@ -472,9 +496,9 @@ const Cart = () => {
                           )}
                         </div>
                         <button
-                          onClick={() => {
-                            addToCart(item.id, item.sizes?.[0] || null, 1);
-                          }}
+                          onClick={() =>
+                            handleAddToCart(item.id, item.sizes?.[0] || null, 1)
+                          } // FIXED: Use handleAddToCart instead of addToCart
                           className="mt-3 w-full py-2 bg-gradient-to-r from-red-400 to-orange-500 hover:from-red-500 hover:to-orange-600 text-white rounded-2xl text-sm font-medium transition-all duration-300"
                           disabled={loading}
                         >

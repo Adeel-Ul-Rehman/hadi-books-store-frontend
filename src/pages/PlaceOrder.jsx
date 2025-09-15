@@ -14,12 +14,13 @@ const PlaceOrder = () => {
     products,
     currency,
     cartItems,
-    calculateCheckoutTotals,
-    processCheckout,
+    processCheckout, 
+    calculateCheckout,
+    uploadPaymentProof,
     TAX_RATE,
     SHIPPING_FEE,
   } = useContext(ShopContext);
-  const { user, uploadPaymentProof } = useContext(AppContext);
+  const { user } = useContext(AppContext);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -70,7 +71,7 @@ const PlaceOrder = () => {
         productId: item.productId,
         quantity: item.quantity,
       }));
-      const result = await calculateCheckoutTotals(items);
+      const result = await calculateCheckout(items);
       if (result.success) {
         setTotals({
           subtotal: result.subtotal,
@@ -90,7 +91,14 @@ const PlaceOrder = () => {
       }
     };
     calculateTotals();
-  }, [user, initialCartLength, cartItems, calculateCheckoutTotals, navigate, orderPlaced]);
+  }, [
+    user,
+    initialCartLength,
+    cartItems,
+    calculateCheckout,
+    navigate,
+    orderPlaced,
+  ]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -197,10 +205,10 @@ const PlaceOrder = () => {
             paymentProof
           );
           if (uploadResponse.success) {
-            toast.success(
-              "Payment proof uploaded successfully",
-              { position: "top-center", autoClose: 3000 }
-            );
+            toast.success("Payment proof uploaded successfully", {
+              position: "top-center",
+              autoClose: 3000,
+            });
           } else {
             toast.error(
               uploadResponse.message || "Failed to upload payment proof",

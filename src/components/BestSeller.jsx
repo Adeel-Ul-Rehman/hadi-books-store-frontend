@@ -4,9 +4,11 @@ import Title from './Title';
 import ProductItems from './ProductItems';
 import { motion } from 'framer-motion';
 import { FiBook } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom'; // ADD THIS IMPORT
 
 const BestSeller = () => {
   const { products } = useContext(ShopContext);
+  const navigate = useNavigate(); // ADD THIS LINE
   const bestSeller = products.filter(item => item.bestseller).slice(0, 6);
 
   return (
@@ -66,7 +68,7 @@ const BestSeller = () => {
             No bestsellers available at the moment. Check out our collections!
           </p>
           <button
-            onClick={() => window.location.href = '/collections'}
+            onClick={() => navigate('/collections')} // FIXED: Use navigate instead of window.location
             className="mt-4 inline-block px-4 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-red-400 to-orange-500 text-white font-semibold rounded-lg shadow-sm hover:from-red-500 hover:to-orange-600 transition-all duration-300 cursor-pointer text-sm sm:text-base"
           >
             Explore Collections

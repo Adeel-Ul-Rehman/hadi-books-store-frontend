@@ -18,7 +18,7 @@ const SearchBar = ({ isNavbar = false, onSearchSubmit, onQueryChange }) => {
     const fetchSuggestions = async () => {
       if (query.length > 0) {
         try {
-          const data = await apiRequest('get', `/products/get?search=${encodeURIComponent(query)}`);
+          const data = await apiRequest('get', `/api/products/get?search=${encodeURIComponent(query)}`);
           if (data.success) {
             setSuggestions(data.products.slice(0, 5));
             setShowSuggestions(true);

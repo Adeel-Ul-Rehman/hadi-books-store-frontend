@@ -40,7 +40,7 @@ const Product = () => {
     const fetchProduct = async () => {
       try {
         setLoadingProduct(true);
-        const data = await apiRequest("get", `/products/${productId}`);
+        const data = await apiRequest("get", `/api/products/${productId}`);
         if (data.success) {
           setProductData(data.product);
           setSelectedFormat(data.product.sizes?.[0] || "");
@@ -67,7 +67,7 @@ const Product = () => {
         setLoadingReviews(activeTab === "Reviews");
         const data = await apiRequest(
           "get",
-          `/reviews/product/${productId}?page=${pagination.page}&limit=${pagination.limit}`
+          `/api/reviews/product/${productId}?page=${pagination.page}&limit=${pagination.limit}`
         );
         if (data.success) {
           setReviews(data.reviews);
