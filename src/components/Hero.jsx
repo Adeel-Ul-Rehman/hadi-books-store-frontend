@@ -6,7 +6,7 @@ import { ShopContext } from "../context/ShopContext";
 import { AppContext } from "../context/AppContext";
 
 const Hero = () => {
-  const { apiRequest } = useContext(AppContext);
+  const { apiRequest } = useContext(ShopContext);
   const [heroImages, setHeroImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
