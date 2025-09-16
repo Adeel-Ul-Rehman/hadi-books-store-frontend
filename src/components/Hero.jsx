@@ -3,10 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ShopContext } from "../context/ShopContext";
-import { AppContext } from "../context/AppContext";
 
 const Hero = () => {
-  const { apiRequest } = useContext(ShopContext);
+  const { fetchHeroImages } = useContext(ShopContext);
   const [heroImages, setHeroImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -14,13 +13,13 @@ const Hero = () => {
 
   // Fetch hero images from backend
   useEffect(() => {
-    const fetchHeroImages = async () => {
+    const loadHeroImages = async () => {
       try {
-        const data = await apiRequest('get', '/api/hero/');
-        if (data.success) {
-          setHeroImages(data.data || []);
+        const images = await fetchHeroImages();
+        if (images && images.length > 0) {
+          setHeroImages(images);
         } else {
-          setError(data.message || "Failed to fetch hero images");
+          setError("No hero images available");
           setHeroImages([]);
         }
       } catch (error) {
@@ -32,8 +31,8 @@ const Hero = () => {
       }
     };
 
-    fetchHeroImages();
-  }, [apiRequest]);
+    loadHeroImages();
+  }, [fetchHeroImages]);
 
   // Automatic image change
   useEffect(() => {
@@ -41,7 +40,7 @@ const Hero = () => {
 
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
-    }, 5000); // Increased to 5 seconds for better UX
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [heroImages.length]);
