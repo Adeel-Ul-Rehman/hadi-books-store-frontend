@@ -2,13 +2,8 @@ import React, { useState, useEffect, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ShopContext } from "../context/ShopContext";
 import { AppContext } from "../context/AppContext";
-
-// Determine the API base URL based on the environment
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 
-  (process.env.NODE_ENV === 'production' 
-    ? 'https://hadi-books-store-backend-4.onrender.com' // Replace with your actual deployed backend URL
-    : 'http://localhost:4000'); // Adjust port if your localhost backend uses a different one
 
 const Hero = () => {
   const { apiRequest } = useContext(AppContext);
@@ -21,8 +16,7 @@ const Hero = () => {
   useEffect(() => {
     const fetchHeroImages = async () => {
       try {
-        // Use the API_BASE_URL to construct the full endpoint
-        const data = await apiRequest('get', `${API_BASE_URL}/api/hero/`);
+        const data = await apiRequest('get', '/api/hero/');
         if (data.success) {
           setHeroImages(data.data || []);
         } else {
@@ -30,7 +24,7 @@ const Hero = () => {
           setHeroImages([]);
         }
       } catch (error) {
-        console.error("Fetch Hero Images Error:", error.message);
+        console.error("Fetch Hero Images Error:", error);
         setError("Failed to fetch hero images");
         setHeroImages([]);
       } finally {
@@ -47,7 +41,7 @@ const Hero = () => {
 
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
-    }, 5000); // 5 seconds interval
+    }, 5000); // Increased to 5 seconds for better UX
 
     return () => clearInterval(interval);
   }, [heroImages.length]);
@@ -171,10 +165,6 @@ const Hero = () => {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                </div>
-              ) : error ? (
-                <div className="flex items-center justify-center h-full bg-gray-200 text-gray-600 text-sm sm:text-base">
-                  {error}
                 </div>
               ) : (
                 <AnimatePresence initial={false}>
