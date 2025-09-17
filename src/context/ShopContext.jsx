@@ -39,7 +39,7 @@ const ShopContextProvider = ({ children }) => {
       params.append('page', '1');
       params.append('limit', '120');
 
-      const data = await apiRequest('get', `/api/products/get?${params.toString()}`);
+      const data = apiRequest('get', `/api/products/get?${params.toString()}`);
       if (data.success) {
         const productsWithSubCategories = data.products.map(product => ({
           ...product,
