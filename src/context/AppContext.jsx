@@ -36,11 +36,6 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // Check authentication on component mount
-  useEffect(() => {
-    isAuthenticated();
-  }, []);
-
   const apiRequest = async (
     method,
     url,
@@ -80,6 +75,12 @@ const AppContextProvider = ({ children }) => {
   };
 
   const checkAuthSilently = async () => {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      setUser(null);
+      return { success: false, message: "No active session" };
+    }
+
     try {
       const data = await apiRequest("get", "/api/auth/is-auth", null, {}, true);
       if (data.success && data.user) {
@@ -107,7 +108,7 @@ const AppContextProvider = ({ children }) => {
       }
     } catch (err) {
       // Silent handling - no session is normal for guest users
-      if (err.response?.status === 401 && localStorage.getItem("user")) {
+      if (err.response?.status === 401) {
         localStorage.removeItem("user");
       }
       setUser(null);
@@ -119,7 +120,13 @@ const AppContextProvider = ({ children }) => {
     checkAuthSilently();
   }, []);
 
- const isAuthenticated = async () => {
+  const isAuthenticated = async () => {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      setUser(null);
+      return { success: false, message: "Not authenticated" };
+    }
+
     try {
       const data = await apiRequest("get", "/api/auth/is-auth", null, {}, true);
       if (data.success && data.user) {
@@ -146,7 +153,7 @@ const AppContextProvider = ({ children }) => {
       }
     } catch (err) {
       // Silent error handling - no session is normal
-      if (err.response?.status === 401 && localStorage.getItem("user")) {
+      if (err.response?.status === 401) {
         localStorage.removeItem("user");
       }
       setUser(null);
@@ -154,7 +161,7 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-const register = async (userData) => {
+  const register = async (userData) => {
     setIsLoading(true);
     const { name, lastName, email, password, confirmPassword } = userData;
     if (!name || !email || !password || !confirmPassword) {
@@ -204,7 +211,7 @@ const register = async (userData) => {
     }
   };
 
-const login = async (email, password) => {
+  const login = async (email, password) => {
     setIsLoading(true);
     if (!email || !password) {
       setIsLoading(false);
@@ -568,7 +575,7 @@ const login = async (email, password) => {
   };
 
   return (
-  <AppContext.Provider
+    <AppContext.Provider
       value={{
         user,
         isLoading,
