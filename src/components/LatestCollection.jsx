@@ -4,11 +4,11 @@ import Title from './Title';
 import ProductItems from './ProductItems';
 import { motion } from 'framer-motion';
 import { FiBook } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom'; // ADD THIS IMPORT
+import { useNavigate } from 'react-router-dom';
 
 const LatestCollection = () => {
   const { products } = useContext(ShopContext);
-  const navigate = useNavigate(); // ADD THIS LINE
+  const navigate = useNavigate();
   const latestProducts = products.slice(0, 12);
 
   return (
@@ -16,7 +16,7 @@ const LatestCollection = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="py-8 px-4 sm:px-6 lg:px-8"
+      className="py-6 px-4 sm:px-6 lg:px-8"
     >
       <div className="max-w-7xl mx-auto text-center">
         <Title text1={'LATEST'} text2={'COLLECTION'} />
@@ -31,7 +31,7 @@ const LatestCollection = () => {
       </div>
       {latestProducts.length > 0 ? (
         <motion.div
-          className="mt-6 max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6"
+          className="mt-6 max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ staggerChildren: 0.1 }}
@@ -42,6 +42,7 @@ const LatestCollection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
+              className="w-full"
             >
               <ProductItems
                 id={item.id}
@@ -68,7 +69,7 @@ const LatestCollection = () => {
             No products available at the moment. Check back soon for new arrivals!
           </p>
           <button
-            onClick={() => navigate('/collections')} // FIXED: Use navigate instead of window.location
+            onClick={() => navigate('/collections')}
             className="mt-4 inline-block px-4 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-red-400 to-orange-500 text-white font-semibold rounded-lg shadow-sm hover:from-red-500 hover:to-orange-600 transition-all duration-300 cursor-pointer text-sm sm:text-base"
           >
             Explore Collections

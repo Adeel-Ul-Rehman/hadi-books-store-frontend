@@ -78,7 +78,7 @@ const ProductItems = ({
     <>
       <div className="relative">
         <img
-          className="w-full h-48 sm:h-56 object-cover rounded-t-2xl"
+          className="w-full h-40 sm:h-56 object-cover rounded-t-2xl"
           src={image || "https://placehold.co/300x300?text=Book+Image"}
           alt={name}
           onError={handleImageError}
@@ -105,20 +105,19 @@ const ProductItems = ({
         </button>
       </div>
 
-      {/* Removed extra spacing, tightened layout */}
-      <div className="p-4 flex flex-col h-auto">
+      <div className="p-3 sm:p-4 flex flex-col h-auto">
         <p className="text-xs text-gray-500 capitalize truncate">{category}</p>
-        <h3 className="text-base font-semibold text-gray-800 truncate mt-1">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 mt-1 min-h-[2.5rem]">
           {name}
         </h3>
 
         {/* Price display with original price if available */}
-        <div className="flex items-center gap-2 mt-1">
-          <p className="text-sm font-semibold text-[#00308F]">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
+          <p className="text-sm font-semibold text-[#00308F] whitespace-nowrap">
             {`${currency}${price.toFixed(2)}`}
           </p>
           {originalPrice && originalPrice > price && (
-            <p className="text-sm text-gray-500 line-through">
+            <p className="text-xs sm:text-sm text-gray-500 line-through whitespace-nowrap">
               {`${currency}${originalPrice.toFixed(2)}`}
             </p>
           )}
@@ -126,7 +125,7 @@ const ProductItems = ({
 
         {/* Formats */}
         {sizes?.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-wrap gap-1 sm:gap-2 mt-2">
             {sizes.map((format) => (
               <button
                 key={format}
@@ -135,7 +134,7 @@ const ProductItems = ({
                   e.stopPropagation();
                   setSelectedFormat(format);
                 }}
-                className={`px-3 py-1 text-xs rounded-full transition-all duration-200 ${
+                className={`px-2 py-1 text-xs rounded-full transition-all duration-200 ${
                   selectedFormat === format
                     ? "bg-gradient-to-r from-red-400 to-orange-500 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -147,12 +146,12 @@ const ProductItems = ({
           </div>
         )}
 
-        {/* Add to Cart button — no extra bottom padding */}
+        {/* Add to Cart button */}
         <motion.button
           onClick={handleAddToCart}
           whileTap={{ scale: 0.95 }}
           disabled={isAddingToCart}
-          className={`w-full mt-3 py-2 text-sm font-semibold rounded-lg transition-colors duration-300 ${
+          className={`w-full mt-3 py-2 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg transition-colors duration-300 ${
             isAddingToCart
               ? "bg-green-100 text-green-800"
               : "bg-gradient-to-r from-red-400 to-orange-500 hover:from-red-500 hover:to-orange-600 text-white"
