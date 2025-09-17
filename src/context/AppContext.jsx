@@ -96,7 +96,7 @@ const isAuthenticated = async () => {
       return { success: false, message: "Not authenticated" };
     }
   } catch (err) {
-    // FIX: Handle network errors gracefully
+    // Handle network errors gracefully
     if (err.code === 'NETWORK_ERROR' || err.message === 'Network Error') {
       console.warn('Authentication check failed - network error');
     } else if (err.response?.status === 401 && localStorage.getItem("user")) {
