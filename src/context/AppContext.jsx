@@ -44,17 +44,13 @@ const AppContextProvider = ({ children }) => {
   const apiRequest = async (method, url, data = null, config = {}) => {
     setError(null);
     try {
-      const axiosFn = async () => {
-        const response = await axios({
-          method,
-          url: `${url}`,
-          data,
-          ...config,
-        });
-        return response.data;
-      };
-      const data = await retryRequest(axiosFn);
-      return data;
+      const response = await axios({
+        method,
+        url: `${url}`,
+        data,
+        ...config,
+      });
+      return response.data;
     } catch (err) {
       const message =
         err.response?.data?.message || "An unexpected error occurred";
@@ -100,7 +96,7 @@ const isAuthenticated = async () => {
       return { success: false, message: "Not authenticated" };
     }
   } catch (err) {
-    // FIX: Handle network errors gracefully
+    // Handle network errors gracefully
     if (err.code === 'NETWORK_ERROR' || err.message === 'Network Error') {
       console.warn('Authentication check failed - network error');
     } else if (err.response?.status === 401 && localStorage.getItem("user")) {
