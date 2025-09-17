@@ -69,7 +69,42 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-s
+const isAuthenticated = async () => {
+  setIsLoading(true);
+  try {
+    const data = await apiRequest("get", "/api/auth/is-auth");
+    if (data.success && data.user) {
+      setUser({
+        id: data.user.id,
+        name: data.user.name,
+        lastName: data.user.lastName,
+        email: data.user.email,
+        isAccountVerified: data.user.isAccountVerified,
+        address: data.user.address,
+        postCode: data.user.postCode,
+        city: data.user.city,
+        country: data.user.country,
+        shippingAddress: data.user.shippingAddress,
+        mobileNumber: data.user.mobileNumber,
+        profilePicture: data.user.profilePicture,
+      });
+      localStorage.setItem("user", JSON.stringify(data.user));
+      return data;
+    } else {
+      setUser(null);
+      localStorage.removeItem("user");
+      return { success: false, message: "Not authenticated" };
+    }
+  } catch (err) {
+    if (err.response?.status === 401 && localStorage.getItem("user")) {
+      localStorage.removeItem("user");
+    }
+    setUser(null);
+    return { success: false, message: "Not authenticated" };
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const register = async (userData) => {
     setIsLoading(true);
