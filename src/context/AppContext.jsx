@@ -28,6 +28,7 @@ const AppContextProvider = ({ children }) => {
         data,
         ...config,
       });
+      console.log("Shayan response data is",response,data)
       return response.data;
     } catch (err) {
       const message = err.response?.data?.message || "An unexpected error occurred";
