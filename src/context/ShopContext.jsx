@@ -42,13 +42,15 @@ const ShopContextProvider = ({ children }) => {
 
       const data = await apiRequest('get', `/api/products/get?${params.toString()}`);
       if (data.success) {
-        console.log("Shayan is testiing in frontend in data.success at fetchProducts in ShopContext")
+        console.log("Shayan is testiing in frontend in if statement of data.success at fetchProducts in ShopContext")
         const productsWithSubCategories = data.products.map(product => ({
           ...product,
           subCategories: product.subCategories || [],
         }));
         setProducts(productsWithSubCategories || []);
       } else {
+        console.log("Shayan is testiing in frontend in else statement of data.success at fetchProducts in ShopContext")
+    
         setProducts([]);
       }
     } catch (error) {
