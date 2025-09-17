@@ -313,68 +313,66 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
-// Add these functions to your existing ShopContext
+  const uploadPaymentProof = async (orderId, file) => {
+    setLoading(true);
+    if (!orderId || !file) {
+      setLoading(false);
+      return { success: false, message: 'Order ID and proof file are required' };
+    }
 
-const uploadPaymentProof = async (orderId, file) => {
-  setLoading(true);
-  if (!orderId || !file) {
-    setLoading(false);
-    return { success: false, message: 'Order ID and proof file are required' };
-  }
+    const formData = new FormData();
+    formData.append('orderId', orderId);
+    formData.append('proof', file);
 
-  const formData = new FormData();
-  formData.append('orderId', orderId);
-  formData.append('proof', file);
+    try {
+      const data = await apiRequest('post', '/api/checkout/upload-proof', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return data;
+    } catch (error) {
+      console.error('Upload Payment Proof Error:', error);
+      return { success: false, message: error.response?.data?.message || 'Failed to upload payment proof' };
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  try {
-    const data = await apiRequest('post', '/api/checkout/upload-proof', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return data;
-  } catch (error) {
-    console.error('Upload Payment Proof Error:', error);
-    return { success: false, message: error.response?.data?.message || 'Failed to upload payment proof' };
-  } finally {
-    setLoading(false);
-  }
-};
+  const calculateCheckout = async (items) => {
+    try {
+      const data = await apiRequest('post', '/api/checkout/calculate', { 
+        items,
+        taxes: items.reduce((sum, item) => {
+          const product = products.find(p => p.id === item.productId);
+          return sum + (product ? product.price * item.quantity : 0);
+        }, 0) * TAX_RATE,
+        shippingFee: SHIPPING_FEE,
+      });
+      return data;
+    } catch (error) {
+      console.error('Calculate Checkout Error:', error);
+      return { success: false, message: 'Failed to calculate checkout totals' };
+    }
+  };
 
-const calculateCheckout = async (items) => {
-  try {
-    const data = await apiRequest('post', '/api/checkout/calculate', { 
-      items,
-      taxes: items.reduce((sum, item) => {
-        const product = products.find(p => p.id === item.productId);
-        return sum + (product ? product.price * item.quantity : 0);
-      }, 0) * TAX_RATE,
-      shippingFee: SHIPPING_FEE,
-    });
-    return data;
-  } catch (error) {
-    console.error('Calculate Checkout Error:', error);
-    return { success: false, message: 'Failed to calculate checkout totals' };
-  }
-};
-
-const processCheckout = async (checkoutData) => {
-  try {
-    const { paymentMethod, onlinePaymentOption, ...rest } = checkoutData;
-    const data = await apiRequest('post', '/api/checkout/process', {
-      ...rest,
-      paymentMethod,
-      onlinePaymentOption: paymentMethod === 'online' ? onlinePaymentOption : undefined,
-      taxes: rest.items.reduce((sum, item) => {
-        const product = products.find(p => p.id === item.productId);
-        return sum + (product ? product.price * item.quantity : 0);
-      }, 0) * TAX_RATE,
-      shippingFee: SHIPPING_FEE,
-    });
-    return data;
-  } catch (error) {
-    console.error('Process Checkout Error:', error);
-    return { success: false, message: 'Failed to process checkout' };
-  }
-};
+  const processCheckout = async (checkoutData) => {
+    try {
+      const { paymentMethod, onlinePaymentOption, ...rest } = checkoutData;
+      const data = await apiRequest('post', '/api/checkout/process', {
+        ...rest,
+        paymentMethod,
+        onlinePaymentOption: paymentMethod === 'online' ? onlinePaymentOption : undefined,
+        taxes: rest.items.reduce((sum, item) => {
+          const product = products.find(p => p.id === item.productId);
+          return sum + (product ? product.price * item.quantity : 0);
+        }, 0) * TAX_RATE,
+        shippingFee: SHIPPING_FEE,
+      });
+      return data;
+    } catch (error) {
+      console.error('Process Checkout Error:', error);
+      return { success: false, message: 'Failed to process checkout' };
+    }
+  };
 
   const fetchHeroImages = async () => {
     try {
@@ -389,37 +387,43 @@ const processCheckout = async (checkoutData) => {
     }
   };
 
-return (
-  <ShopContext.Provider
-    value={{
-      products,
-      cartItems,
-      wishlistItems,
-      currency,
-      addToCart,
-      removeFromCart,
-      updateCart,
-      toggleWishlistItem,
-      removeFromWishlist,
-      isInWishlist,
-      getCartCount,
-      getWishlistCount,
-      getProductReviews,
-      getCartTotal,
-      fetchProducts,
-      fetchCart,
-      fetchWishlist,
-      loading,
-      processCheckout,         // ADD THIS
-      uploadPaymentProof,      // ADD THIS
-      calculateCheckout,       // ADD THIS (if different from calculateCheckoutTotals)
-      TAX_RATE,
-      SHIPPING_FEE,
-      fetchHeroImages,
-    }}
-  >
-    {children}
-  </ShopContext.Provider>
-);
+  // Fetch products on component mount (not dependent on user)
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  return (
+    <ShopContext.Provider
+      value={{
+        products,
+        cartItems,
+        wishlistItems,
+        currency,
+        addToCart,
+        removeFromCart,
+        updateCart,
+        toggleWishlistItem,
+        removeFromWishlist,
+        isInWishlist,
+        getCartCount,
+        getWishlistCount,
+        getProductReviews,
+        getCartTotal,
+        fetchProducts,
+        fetchCart,
+        fetchWishlist,
+        loading,
+        processCheckout,
+        uploadPaymentProof,
+        calculateCheckout,
+        TAX_RATE,
+        SHIPPING_FEE,
+        fetchHeroImages,
+      }}
+    >
+      {children}
+    </ShopContext.Provider>
+  );
 };
+
 export default ShopContextProvider;
