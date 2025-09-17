@@ -19,6 +19,7 @@ const AppContextProvider = ({ children }) => {
   }, []);
 
   const apiRequest = async (method, url, data = null, config = {}) => {
+    console.log("In apiRequest-Shayan")
     setError(null);
     try {
       const response = await axios({
