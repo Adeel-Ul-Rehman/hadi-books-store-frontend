@@ -8,7 +8,7 @@ const TAX_RATE = 0.02;
 const SHIPPING_FEE = 99;
 
 const ShopContextProvider = ({ children }) => {
-  const { user, apiRequest, setUser } = useContext(AppContext);
+  const { user, apiRequest } = useContext(AppContext);
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [wishlistItems, setWishlistItems] = useState([]);
@@ -23,13 +23,12 @@ const ShopContextProvider = ({ children }) => {
       setWishlistItems(localWishlist.map(id => ({ productId: id })));
       setCartItems(localCart);
     } else {
-      // Fetch cart and wishlist only if user is authenticated
       fetchWishlist();
       fetchCart();
     }
   }, [user]);
 
- const fetchProducts = async (category = '', search = '', bestseller = false) => {
+  const fetchProducts = async (category = '', search = '', bestseller = false) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -51,15 +50,14 @@ const ShopContextProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Fetch Products Error:', error);
-      // Even if there's an error, set empty products instead of breaking
       setProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
- const fetchCart = async () => {
-    if (!user) return; // Don't fetch if no user
+  const fetchCart = async () => {
+    if (!user) return; 
     
     setLoading(true);
     try {
@@ -78,7 +76,7 @@ const ShopContextProvider = ({ children }) => {
   };
 
   const fetchWishlist = async () => {
-    if (!user) return; // Don't fetch if no user
+    if (!user) return; 
     
     setLoading(true);
     try {
@@ -106,7 +104,6 @@ const ShopContextProvider = ({ children }) => {
       }
 
       if (!user) {
-        // Local storage for guest users
         const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
         const existingItemIndex = localCart.findIndex(item => 
           item.productId === productId && item.format === format
@@ -131,10 +128,9 @@ const ShopContextProvider = ({ children }) => {
         return true;
       }
 
-      // For logged-in users - call API
       const data = await apiRequest('post', '/api/cart/add', { productId, quantity });
       if (data.success) {
-        await fetchCart(); // Refresh cart from server
+        await fetchCart();
         return true;
       }
       return false;
@@ -388,9 +384,10 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
+  // ✅ Always fetch products on first load
   useEffect(() => {
     fetchProducts();
-  }, [user]);
+  }, []);
 
   return (
     <ShopContext.Provider
