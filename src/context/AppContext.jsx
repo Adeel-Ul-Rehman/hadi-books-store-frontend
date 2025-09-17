@@ -89,7 +89,7 @@ const AppContextProvider = ({ children }) => {
   };
 
   const register = async (userData) => {
-    setIsLoading(true);
+  setIsLoading(true);
     const { name, lastName, email, password, confirmPassword } = userData;
     if (!name || !email || !password || !confirmPassword) {
       setIsLoading(false);
@@ -139,7 +139,9 @@ const AppContextProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    setIsLoading(true);
+  setIsLoading(true);
+  // Optimistically set loading state and clear error
+  setError(null);
     if (!email || !password) {
       setIsLoading(false);
       return { success: false, message: "Email and password are required" };
@@ -186,7 +188,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const verifyEmail = async (otp) => {
-    setIsLoading(true);
+  setIsLoading(true);
+  setError(null);
     if (!otp || !/^\d{6}$/.test(otp)) {
       setIsLoading(false);
       return { success: false, message: "Invalid OTP format" };
@@ -212,7 +215,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const sendVerifyOtp = async (userId) => {
-    setIsLoading(true);
+  setIsLoading(true);
+  setError(null);
     if (!userId) {
       setIsLoading(false);
       return { success: false, message: "User ID is required" };
@@ -233,7 +237,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const sendResetOtp = async (email) => {
-    setIsLoading(true);
+  setIsLoading(true);
+  setError(null);
     if (!email || !validator.isEmail(email)) {
       setIsLoading(false);
       return { success: false, message: "Valid email is required" };
@@ -252,7 +257,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const verifyResetOtp = async (email, otp) => {
-    setIsLoading(true);
+  setIsLoading(true);
+  setError(null);
     if (!email || !otp || !validator.isEmail(email) || !/^\d{6}$/.test(otp)) {
       setIsLoading(false);
       return { success: false, message: "Valid email and OTP are required" };
@@ -274,7 +280,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const fetchUserOrders = async () => {
-    setIsLoading(true);
+  setIsLoading(true);
+  setError(null);
     try {
       const data = await apiRequest("get", "/api/orders/get");
       return data;
@@ -289,7 +296,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const createOrder = async (orderData) => {
-    setIsLoading(true);
+  setIsLoading(true);
+  setError(null);
     try {
       const data = await apiRequest("post", "/api/orders/create", orderData);
       return data;
@@ -304,7 +312,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const resetPassword = async (email, otp, newPassword, confirmPassword) => {
-    setIsLoading(true);
+  setIsLoading(true);
+  setError(null);
     if (!email || !otp || !newPassword || !confirmPassword) {
       setIsLoading(false);
       return { success: false, message: "All fields are required" };
@@ -347,15 +356,14 @@ const AppContextProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    // Optimistically clear user state for fast feedback
+    setUser(null);
+    localStorage.removeItem("user");
+    localStorage.removeItem("localCart");
+    localStorage.removeItem("localWishlist");
+    toast.success("Logged out");
     try {
       const data = await apiRequest("post", "/api/auth/logout");
-      if (data.success) {
-        setUser(null);
-        localStorage.removeItem("user");
-        localStorage.removeItem("localCart");
-        localStorage.removeItem("localWishlist");
-        toast.success("Logged out");
-      }
       return data;
     } catch (err) {
       return {
@@ -366,7 +374,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const updateUser = async (formData) => {
-    setIsLoading(true);
+  setIsLoading(true);
+  setError(null);
     try {
       const data = await apiRequest("put", "/api/auth/update-profile", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -401,7 +410,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const removeProfilePicture = async () => {
-    setIsLoading(true);
+  setIsLoading(true);
+  setError(null);
     try {
       const data = await apiRequest("delete", "/api/auth/remove-profile-picture");
       if (data.success) {
@@ -424,7 +434,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const deleteAccount = async (email, password) => {
-    setIsLoading(true);
+  setIsLoading(true);
+  setError(null);
     if (!email || !password) {
       setIsLoading(false);
       return { success: false, message: "Email and password are required" };
@@ -456,7 +467,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const uploadPaymentProof = async (orderId, file) => {
-    setIsLoading(true);
+  setIsLoading(true);
+  setError(null);
     if (!orderId || !file) {
       setIsLoading(false);
       return {
