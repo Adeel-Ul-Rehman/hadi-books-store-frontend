@@ -389,10 +389,6 @@ const processCheckout = async (checkoutData) => {
     }
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, [user]);
-
 return (
   <ShopContext.Provider
     value={{
