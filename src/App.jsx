@@ -21,21 +21,22 @@ import AppContextProvider from "./context/AppContext.jsx";
 import ShopContextProvider from "./context/ShopContext.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
-import { useEffect, useContext } from "react";
-import { AppContext } from "./context/AppContext.jsx";
+import { useEffect } from "react";
 
+// Create a wrapper component that uses the context
 const AppContent = () => {
-  const { isAuthenticated } = useContext(AppContext);
   const location = useLocation();
 
   useEffect(() => {
-    isAuthenticated(); // Check auth state on app load and route change
-  }, [location.pathname, isAuthenticated]);
+    // This will run after all contexts are properly set up
+    console.log("App initialized");
+  }, [location.pathname]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-sky-50 via-orange-50 to-red-50 dark:from-gray-800 dark:via-gray-900 dark:to-black">
       <Navbar />
       <ScrollToTop />
+      {/* ✅ full-width main, no extra empty space on sides */}
       <main className="flex-grow w-full">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -55,6 +56,7 @@ const AppContent = () => {
           <Route path="/wishlist" element={<Wishlist />} />
         </Routes>
       </main>
+
       <Footer />
       <ToastContainer
         position="top-right"

@@ -15,7 +15,7 @@ const ShopContextProvider = ({ children }) => {
   const [currency] = useState('Rs.');
   const [loading, setLoading] = useState(false);
 
-  // Initialize from localStorage for non-auth users, or fetch for auth users (original logic)
+  // Initialize from localStorage for non-auth users, or fetch for auth users
   useEffect(() => {
     if (!user) {
       const localWishlist = JSON.parse(localStorage.getItem('localWishlist') || '[]');
@@ -28,11 +28,6 @@ const ShopContextProvider = ({ children }) => {
       fetchCart();
     }
   }, [user]);
-
-  // Fetch products once on mount (no dependency on user to avoid loops)
-  useEffect(() => {
-    fetchProducts();
-  }, []); // Empty dependency: Runs only once
 
   const fetchProducts = async (category = '', search = '', bestseller = false) => {
     setLoading(true);
@@ -391,6 +386,10 @@ const ShopContextProvider = ({ children }) => {
       return [];
     }
   };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [user]);
 
   return (
     <ShopContext.Provider

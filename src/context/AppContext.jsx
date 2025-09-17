@@ -14,27 +14,9 @@ const AppContextProvider = ({ children }) => {
 
   // Configure Axios default settings
   useEffect(() => {
-    axios.defaults.baseURL =
-      import.meta.env.VITE_API_URL || "http://localhost:4000";
+    axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
     axios.defaults.withCredentials = true;
   }, []);
-
-  // Retry helper function for API requests (no retry on 401 to avoid loops)
-  const retryRequest = async (fn, retries = 3, delay = 1000) => {
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        return await fn();
-      } catch (err) {
-        if (err.response?.status === 401) {
-          throw err; // No retry on auth errors
-        }
-        if (attempt === retries || err.response?.status < 500) {
-          throw err;
-        }
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
-    }
-  };
 
   const apiRequest = async (method, url, data = null, config = {}) => {
     setError(null);
@@ -47,23 +29,20 @@ const AppContextProvider = ({ children }) => {
       });
       return response.data;
     } catch (err) {
-      const message =
-        err.response?.data?.message || "An unexpected error occurred";
+      const message = err.response?.data?.message || "An unexpected error occurred";
+      
+      // Only show error toast for non-401 errors
+      if (err.response?.status !== 401) {
+        setError(message);
+      }
 
-      // Only trigger auto-logout and toast for specific auth errors, not for is-auth
-      if (
-        err.response?.status === 401 &&
-        url !== "/api/auth/is-auth" &&
-        (err.response?.data?.message === "Authentication token has expired" ||
-          err.response?.data?.message === "Invalid authentication token")
-      ) {
+      // Auto-logout only on 401 errors when user was previously logged in
+      if (err.response?.status === 401 && user) {
         setUser(null);
         localStorage.removeItem("user");
         localStorage.removeItem("localCart");
         localStorage.removeItem("localWishlist");
         toast.error("Session expired. Please login again.");
-      } else {
-        setError(message);
       }
 
       throw err;
@@ -74,6 +53,7 @@ const AppContextProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const data = await apiRequest("get", "/api/auth/is-auth");
+      
       if (data.success && data.user) {
         setUser({
           id: data.user.id,
@@ -90,15 +70,20 @@ const AppContextProvider = ({ children }) => {
           profilePicture: data.user.profilePicture,
         });
         localStorage.setItem("user", JSON.stringify(data.user));
+        return data;
       } else {
+        // Gracefully handle non-authenticated state
         setUser(null);
         localStorage.removeItem("user");
+        return { success: false, message: "Not authenticated", user: null };
       }
-      return data;
     } catch (err) {
+      // Gracefully handle authentication errors - don't show error toasts
+      if (err.response?.status === 401 && localStorage.getItem("user")) {
+        localStorage.removeItem("user");
+      }
       setUser(null);
-      localStorage.removeItem("user");
-      return { success: false, message: "Not authenticated" };
+      return { success: false, message: "Not authenticated", user: null };
     } finally {
       setIsLoading(false);
     }
@@ -177,7 +162,9 @@ const AppContextProvider = ({ children }) => {
         localWishlist,
       });
       if (data.success) {
-        await isAuthenticated(); // Refresh user data
+        // Call isAuthenticated to refresh the user data with complete profile info
+        await isAuthenticated();
+        
         if (data.wishlistSynced) {
           localStorage.removeItem("localWishlist");
         }
@@ -486,7 +473,7 @@ const AppContextProvider = ({ children }) => {
     try {
       const data = await apiRequest(
         "post",
-        "/api/checkout/upload-proof",
+        "/checkout/upload-proof",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
