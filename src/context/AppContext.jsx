@@ -10,8 +10,6 @@ const AppContextProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const apiUrl = import.meta.env.VITE_API_URL || "/api"; // Use Vite proxy prefix for same-origin requests
-
   // Configure Axios default settings
   useEffect(() => {
     axios.defaults.baseURL =
@@ -19,22 +17,21 @@ const AppContextProvider = ({ children }) => {
     axios.defaults.withCredentials = true;
   }, []);
 
-  // Retry helper function for API requests (no retry on 401 to avoid loops)
-  const retryRequest = async (fn, retries = 3, delay = 1000) => {
-    for (let attempt = 1; attempt <= retries; attempt++) {
+  // Check for stored user data on component mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
       try {
-        return await fn();
-      } catch (err) {
-        if (err.response?.status === 401) {
-          throw err; // No retry on auth errors
-        }
-        if (attempt === retries || err.response?.status < 500) {
-          throw err;
-        }
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        // Silently check if session is still valid in the background
+        checkSessionSilently();
+      } catch (error) {
+        console.warn("Failed to parse stored user data");
+        localStorage.removeItem("user");
       }
     }
-  };
+  }, []);
 
   const apiRequest = async (
     method,
@@ -47,59 +44,84 @@ const AppContextProvider = ({ children }) => {
     try {
       const response = await axios({
         method,
-        url,
+        url: `${url}`,
         data,
         ...config,
       });
       return response.data;
     } catch (err) {
-      const status = err.response?.status;
-
-      if (status === 401 && suppressAuthError) {
-        // silent fail for auth checks
-        return { success: false, message: "Not authenticated" };
-      }
-
       const message =
         err.response?.data?.message || "An unexpected error occurred";
 
-      if (!suppressAuthError) {
+      // Only set error for non-auth issues or if not suppressed
+      if (!suppressAuthError || err.response?.status !== 401) {
         setError(message);
+      }
+
+      // Auto-logout on 401 errors only if not suppressed
+      if (err.response?.status === 401 && !suppressAuthError) {
+        setUser(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("localCart");
+        localStorage.removeItem("localWishlist");
+        toast.error("Session expired. Please login again.");
       }
 
       throw err;
     }
   };
 
-  const checkAuthSilently = async () => {
+  // Silent session check - doesn't show any errors
+  const checkSessionSilently = async () => {
     try {
       const data = await apiRequest("get", "/api/auth/is-auth", null, {}, true);
       if (data.success && data.user) {
-        setUser(data.user);
+        setUser({
+          id: data.user.id,
+          name: data.user.name,
+          lastName: data.user.lastName,
+          email: data.user.email,
+          isAccountVerified: data.user.isAccountVerified,
+          address: data.user.address,
+          postCode: data.user.postCode,
+          city: data.user.city,
+          country: data.user.country,
+          shippingAddress: data.user.shippingAddress,
+          mobileNumber: data.user.mobileNumber,
+          profilePicture: data.user.profilePicture,
+        });
         localStorage.setItem("user", JSON.stringify(data.user));
         return data;
-      } else {
-        setUser(null);
-        localStorage.removeItem("user");
-        return { success: false, message: "No active session" };
       }
-    } catch {
-      // fail silently
-      setUser(null);
-      localStorage.removeItem("user");
-      return { success: false, message: "No active session" };
+    } catch (err) {
+      // Completely silent - no console logs, no state changes
+      // Just clear invalid session data if it exists
+      if (localStorage.getItem("user")) {
+        localStorage.removeItem("user");
+        setUser(null);
+      }
     }
+    return { success: false, message: "No active session" };
   };
-
-  useEffect(() => {
-    checkAuthSilently();
-  }, []);
 
   const isAuthenticated = async () => {
     try {
       const data = await apiRequest("get", "/api/auth/is-auth", null, {}, true);
       if (data.success && data.user) {
-        setUser(data.user);
+        setUser({
+          id: data.user.id,
+          name: data.user.name,
+          lastName: data.user.lastName,
+          email: data.user.email,
+          isAccountVerified: data.user.isAccountVerified,
+          address: data.user.address,
+          postCode: data.user.postCode,
+          city: data.user.city,
+          country: data.user.country,
+          shippingAddress: data.user.shippingAddress,
+          mobileNumber: data.user.mobileNumber,
+          profilePicture: data.user.profilePicture,
+        });
         localStorage.setItem("user", JSON.stringify(data.user));
         return data;
       } else {
@@ -107,22 +129,56 @@ const AppContextProvider = ({ children }) => {
         localStorage.removeItem("user");
         return { success: false, message: "Not authenticated" };
       }
-    } catch {
+    } catch (err) {
+      // Silent error handling - no session is normal
+      if (localStorage.getItem("user")) {
+        localStorage.removeItem("user");
+      }
       setUser(null);
-      localStorage.removeItem("user");
       return { success: false, message: "Not authenticated" };
     }
   };
 
-  // Check authentication on component mount
-  useEffect(() => {
-    isAuthenticated();
-  }, []);
-
   const register = async (userData) => {
     setIsLoading(true);
+    const { name, lastName, email, password, confirmPassword } = userData;
+    if (!name || !email || !password || !confirmPassword) {
+      setIsLoading(false);
+      return {
+        success: false,
+        message: "Name, email, password, and confirm password are required",
+      };
+    }
+    if (!validator.isEmail(email)) {
+      setIsLoading(false);
+      return { success: false, message: "Invalid email format" };
+    }
+    if (
+      password.length < 8 ||
+      !/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d!@#$%^&*]*$/.test(password)
+    ) {
+      setIsLoading(false);
+      return { success: false, message: "Invalid password format" };
+    }
+    if (password !== confirmPassword) {
+      setIsLoading(false);
+      return { success: false, message: "Passwords do not match" };
+    }
+    if (name.length > 20) {
+      setIsLoading(false);
+      return { success: false, message: "Name must not exceed 20 characters" };
+    }
+    if (lastName && lastName.length > 20) {
+      setIsLoading(false);
+      return {
+        success: false,
+        message: "Last name must not exceed 20 characters",
+      };
+    }
+
     try {
-      return await apiRequest("post", "/api/auth/register", userData);
+      const data = await apiRequest("post", "/api/auth/register", userData);
+      return data;
     } catch (err) {
       return {
         success: false,
@@ -135,22 +191,53 @@ const AppContextProvider = ({ children }) => {
 
   const login = async (email, password) => {
     setIsLoading(true);
+    if (!email || !password) {
+      setIsLoading(false);
+      return { success: false, message: "Email and password are required" };
+    }
+    if (!validator.isEmail(email)) {
+      setIsLoading(false);
+      return { success: false, message: "Invalid email format" };
+    }
+
+    const localCart = JSON.parse(localStorage.getItem("localCart") || "[]");
+    const localWishlist = JSON.parse(
+      localStorage.getItem("localWishlist") || "[]"
+    );
     try {
-      const localCart = JSON.parse(localStorage.getItem("localCart") || "[]");
-      const localWishlist = JSON.parse(
-        localStorage.getItem("localWishlist") || "[]"
-      );
       const data = await apiRequest("post", "/api/auth/login", {
         email,
         password,
         localCart,
         localWishlist,
       });
-
       if (data.success) {
-        await isAuthenticated(); // refresh user
-        if (data.wishlistSynced) localStorage.removeItem("localWishlist");
-        if (data.cartSynced) localStorage.removeItem("localCart");
+        // Update user state with the complete user data
+        setUser({
+          id: data.user.id,
+          name: data.user.name,
+          lastName: data.user.lastName,
+          email: data.user.email,
+          isAccountVerified: data.user.isAccountVerified,
+          address: data.user.address,
+          postCode: data.user.postCode,
+          city: data.user.city,
+          country: data.user.country,
+          shippingAddress: data.user.shippingAddress,
+          mobileNumber: data.user.mobileNumber,
+          profilePicture: data.user.profilePicture,
+        });
+        localStorage.setItem("user", JSON.stringify(data.user));
+        
+        if (data.wishlistSynced) {
+          localStorage.removeItem("localWishlist");
+        }
+        if (data.cartSynced) {
+          localStorage.removeItem("localCart");
+        }
+        if (data.syncErrors && data.syncErrors.length > 0) {
+          console.warn("Login sync errors:", data.syncErrors);
+        }
       }
       return data;
     } catch (err) {
@@ -160,24 +247,6 @@ const AppContextProvider = ({ children }) => {
       };
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      const data = await apiRequest("post", "/api/auth/logout");
-      if (data.success) {
-        setUser(null);
-        localStorage.removeItem("user");
-        localStorage.removeItem("localCart");
-        localStorage.removeItem("localWishlist");
-      }
-      return data;
-    } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || "Logout failed",
-      };
     }
   };
 
@@ -276,7 +345,7 @@ const AppContextProvider = ({ children }) => {
   const fetchUserOrders = async () => {
     setIsLoading(true);
     try {
-      const data = await apiRequest("get", "/api/orders/get");
+      const data = await apiRequest("get", "/api/orders/get", null, {}, true);
       return data;
     } catch (err) {
       return {
@@ -302,6 +371,7 @@ const AppContextProvider = ({ children }) => {
       setIsLoading(false);
     }
   };
+
   const resetPassword = async (email, otp, newPassword, confirmPassword) => {
     setIsLoading(true);
     if (!email || !otp || !newPassword || !confirmPassword) {
@@ -345,6 +415,24 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
+  const logout = async () => {
+    try {
+      const data = await apiRequest("post", "/api/auth/logout");
+      if (data.success) {
+        setUser(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("localCart");
+        localStorage.removeItem("localWishlist");
+        toast.success("Logged out");
+      }
+      return data;
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || "Logout failed",
+      };
+    }
+  };
 
   const updateUser = async (formData) => {
     setIsLoading(true);
