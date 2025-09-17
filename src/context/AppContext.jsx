@@ -24,7 +24,7 @@ const AppContextProvider = ({ children }) => {
     try {
       const response = await axios({
         method,
-        url: `${url}`,
+        url: `${apiUrl}`,
         data,
         ...config,
       });
