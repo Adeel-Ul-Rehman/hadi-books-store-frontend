@@ -10,6 +10,8 @@ const AppContextProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const apiUrl = import.meta.env.VITE_API_URL || "/api"; // Use Vite proxy prefix for same-origin requests
+
   // Configure Axios default settings
   useEffect(() => {
     axios.defaults.baseURL =
@@ -17,29 +19,29 @@ const AppContextProvider = ({ children }) => {
     axios.defaults.withCredentials = true;
   }, []);
 
-  // Check for stored user data on component mount
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
+  // Retry helper function for API requests (no retry on 401 to avoid loops)
+  const retryRequest = async (fn, retries = 3, delay = 1000) => {
+    for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        // Silently check if session is still valid in the background
-        checkSessionSilently();
-      } catch (error) {
-        console.warn("Failed to parse stored user data");
-        localStorage.removeItem("user");
+        return await fn();
+      } catch (err) {
+        if (err.response?.status === 401) {
+          throw err; // No retry on auth errors
+        }
+        if (attempt === retries || err.response?.status < 500) {
+          throw err;
+        }
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
+  };
+
+  // Check authentication on component mount
+  useEffect(() => {
+    isAuthenticated();
   }, []);
 
-  const apiRequest = async (
-    method,
-    url,
-    data = null,
-    config = {},
-    suppressAuthError = false
-  ) => {
+  const apiRequest = async (method, url, data = null, config = {}) => {
     setError(null);
     try {
       const response = await axios({
@@ -52,14 +54,10 @@ const AppContextProvider = ({ children }) => {
     } catch (err) {
       const message =
         err.response?.data?.message || "An unexpected error occurred";
+      setError(message);
 
-      // Only set error for non-auth issues or if not suppressed
-      if (!suppressAuthError || err.response?.status !== 401) {
-        setError(message);
-      }
-
-      // Auto-logout on 401 errors only if not suppressed
-      if (err.response?.status === 401 && !suppressAuthError) {
+      // Auto-logout on 401 errors
+      if (err.response?.status === 401) {
         setUser(null);
         localStorage.removeItem("user");
         localStorage.removeItem("localCart");
@@ -71,73 +69,42 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // Silent session check - doesn't show any errors
-  const checkSessionSilently = async () => {
-    try {
-      const data = await apiRequest("get", "/api/auth/is-auth", null, {}, true);
-      if (data.success && data.user) {
-        setUser({
-          id: data.user.id,
-          name: data.user.name,
-          lastName: data.user.lastName,
-          email: data.user.email,
-          isAccountVerified: data.user.isAccountVerified,
-          address: data.user.address,
-          postCode: data.user.postCode,
-          city: data.user.city,
-          country: data.user.country,
-          shippingAddress: data.user.shippingAddress,
-          mobileNumber: data.user.mobileNumber,
-          profilePicture: data.user.profilePicture,
-        });
-        localStorage.setItem("user", JSON.stringify(data.user));
-        return data;
-      }
-    } catch (err) {
-      // Completely silent - no console logs, no state changes
-      // Just clear invalid session data if it exists
-      if (localStorage.getItem("user")) {
-        localStorage.removeItem("user");
-        setUser(null);
-      }
-    }
-    return { success: false, message: "No active session" };
-  };
-
-  const isAuthenticated = async () => {
-    try {
-      const data = await apiRequest("get", "/api/auth/is-auth", null, {}, true);
-      if (data.success && data.user) {
-        setUser({
-          id: data.user.id,
-          name: data.user.name,
-          lastName: data.user.lastName,
-          email: data.user.email,
-          isAccountVerified: data.user.isAccountVerified,
-          address: data.user.address,
-          postCode: data.user.postCode,
-          city: data.user.city,
-          country: data.user.country,
-          shippingAddress: data.user.shippingAddress,
-          mobileNumber: data.user.mobileNumber,
-          profilePicture: data.user.profilePicture,
-        });
-        localStorage.setItem("user", JSON.stringify(data.user));
-        return data;
-      } else {
-        setUser(null);
-        localStorage.removeItem("user");
-        return { success: false, message: "Not authenticated" };
-      }
-    } catch (err) {
-      // Silent error handling - no session is normal
-      if (localStorage.getItem("user")) {
-        localStorage.removeItem("user");
-      }
+const isAuthenticated = async () => {
+  setIsLoading(true);
+  try {
+    const data = await apiRequest("get", "/api/auth/is-auth");
+    if (data.success && data.user) {
+      setUser({
+        id: data.user.id,
+        name: data.user.name,
+        lastName: data.user.lastName,
+        email: data.user.email,
+        isAccountVerified: data.user.isAccountVerified,
+        address: data.user.address,
+        postCode: data.user.postCode,
+        city: data.user.city,
+        country: data.user.country,
+        shippingAddress: data.user.shippingAddress,
+        mobileNumber: data.user.mobileNumber,
+        profilePicture: data.user.profilePicture,
+      });
+      localStorage.setItem("user", JSON.stringify(data.user));
+      return data;
+    } else {
       setUser(null);
+      localStorage.removeItem("user");
       return { success: false, message: "Not authenticated" };
     }
-  };
+  } catch (err) {
+    if (err.response?.status === 401 && localStorage.getItem("user")) {
+      localStorage.removeItem("user");
+    }
+    setUser(null);
+    return { success: false, message: "Not authenticated" };
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const register = async (userData) => {
     setIsLoading(true);
@@ -189,66 +156,55 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
-    setIsLoading(true);
-    if (!email || !password) {
-      setIsLoading(false);
-      return { success: false, message: "Email and password are required" };
-    }
-    if (!validator.isEmail(email)) {
-      setIsLoading(false);
-      return { success: false, message: "Invalid email format" };
-    }
+const login = async (email, password) => {
+  setIsLoading(true);
+  if (!email || !password) {
+    setIsLoading(false);
+    return { success: false, message: "Email and password are required" };
+  }
+  if (!validator.isEmail(email)) {
+    setIsLoading(false);
+    return { success: false, message: "Invalid email format" };
+  }
 
-    const localCart = JSON.parse(localStorage.getItem("localCart") || "[]");
-    const localWishlist = JSON.parse(
-      localStorage.getItem("localWishlist") || "[]"
-    );
-    try {
-      const data = await apiRequest("post", "/api/auth/login", {
-        email,
-        password,
-        localCart,
-        localWishlist,
-      });
-      if (data.success) {
-        // Update user state with the complete user data
-        setUser({
-          id: data.user.id,
-          name: data.user.name,
-          lastName: data.user.lastName,
-          email: data.user.email,
-          isAccountVerified: data.user.isAccountVerified,
-          address: data.user.address,
-          postCode: data.user.postCode,
-          city: data.user.city,
-          country: data.user.country,
-          shippingAddress: data.user.shippingAddress,
-          mobileNumber: data.user.mobileNumber,
-          profilePicture: data.user.profilePicture,
-        });
-        localStorage.setItem("user", JSON.stringify(data.user));
-        
-        if (data.wishlistSynced) {
-          localStorage.removeItem("localWishlist");
-        }
-        if (data.cartSynced) {
-          localStorage.removeItem("localCart");
-        }
-        if (data.syncErrors && data.syncErrors.length > 0) {
-          console.warn("Login sync errors:", data.syncErrors);
-        }
+  const localCart = JSON.parse(localStorage.getItem("localCart") || "[]");
+  const localWishlist = JSON.parse(
+    localStorage.getItem("localWishlist") || "[]"
+  );
+  try {
+    const data = await apiRequest("post", "/api/auth/login", {
+      email,
+      password,
+      localCart,
+      localWishlist,
+    });
+    if (data.success) {
+      // Call isAuthenticated to refresh the user data with complete profile info
+      await isAuthenticated();
+      
+      // Remove the manual setUser and localStorage setting here
+      // The isAuthenticated call above will handle this
+      
+      if (data.wishlistSynced) {
+        localStorage.removeItem("localWishlist");
       }
-      return data;
-    } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || "Login failed",
-      };
-    } finally {
-      setIsLoading(false);
+      if (data.cartSynced) {
+        localStorage.removeItem("localCart");
+      }
+      if (data.syncErrors && data.syncErrors.length > 0) {
+        console.warn("Login sync errors:", data.syncErrors);
+      }
     }
-  };
+    return data;
+  } catch (err) {
+    return {
+      success: false,
+      message: err.response?.data?.message || "Login failed",
+    };
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const verifyEmail = async (otp) => {
     setIsLoading(true);
@@ -257,9 +213,7 @@ const AppContextProvider = ({ children }) => {
       return { success: false, message: "Invalid OTP format" };
     }
     try {
-      const data = await apiRequest("post", "/api/auth/verify-account", {
-        otp,
-      });
+      const data = await apiRequest("post", "/api/auth/verify-account", { otp });
       if (data.success) {
         setUser((prev) => ({ ...prev, isAccountVerified: true }));
         localStorage.setItem(
@@ -306,9 +260,7 @@ const AppContextProvider = ({ children }) => {
       return { success: false, message: "Valid email is required" };
     }
     try {
-      const data = await apiRequest("post", "/api/auth/send-reset-otp", {
-        email,
-      });
+      const data = await apiRequest("post", "/api/auth/send-reset-otp", { email });
       return data;
     } catch (err) {
       return {
@@ -345,7 +297,7 @@ const AppContextProvider = ({ children }) => {
   const fetchUserOrders = async () => {
     setIsLoading(true);
     try {
-      const data = await apiRequest("get", "/api/orders/get", null, {}, true);
+      const data = await apiRequest("get", "/api/orders/get");
       return data;
     } catch (err) {
       return {
@@ -371,7 +323,6 @@ const AppContextProvider = ({ children }) => {
       setIsLoading(false);
     }
   };
-
   const resetPassword = async (email, otp, newPassword, confirmPassword) => {
     setIsLoading(true);
     if (!email || !otp || !newPassword || !confirmPassword) {
@@ -437,14 +388,9 @@ const AppContextProvider = ({ children }) => {
   const updateUser = async (formData) => {
     setIsLoading(true);
     try {
-      const data = await apiRequest(
-        "put",
-        "/api/auth/update-profile",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const data = await apiRequest("put", "/api/auth/update-profile", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       if (data.success) {
         setUser({
@@ -477,10 +423,7 @@ const AppContextProvider = ({ children }) => {
   const removeProfilePicture = async () => {
     setIsLoading(true);
     try {
-      const data = await apiRequest(
-        "delete",
-        "/api/auth/remove-profile-picture"
-      );
+      const data = await apiRequest("delete", "/api/auth/remove-profile-picture");
       if (data.success) {
         setUser((prev) => ({ ...prev, profilePicture: null }));
         localStorage.setItem(
