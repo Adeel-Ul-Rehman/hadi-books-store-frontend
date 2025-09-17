@@ -14,11 +14,12 @@ const AppContextProvider = ({ children }) => {
 
   // Configure Axios default settings
   useEffect(() => {
-    axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+     axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
     axios.defaults.withCredentials = true;
   }, []);
 
   const apiRequest = async (method, url, data = null, config = {}) => {
+    console.log("In apiRequest-Shayan")
     setError(null);
     try {
       const response = await axios({
@@ -27,6 +28,7 @@ const AppContextProvider = ({ children }) => {
         data,
         ...config,
       });
+      console.log("Shayan response data is",response,data)
       return response.data;
     } catch (err) {
       const message = err.response?.data?.message || "An unexpected error occurred";
