@@ -105,38 +105,71 @@ const ShopContextProvider = ({ children }) => {
       }
 
       if (!user) {
-        // Local storage for guest users
+        // Optimistically update local cart for guest users
         const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
         const existingItemIndex = localCart.findIndex(item => 
           item.productId === productId && item.format === format
         );
-
+        let updatedCart;
         if (existingItemIndex > -1) {
           localCart[existingItemIndex].quantity += quantity;
+          updatedCart = [...localCart];
         } else {
-          localCart.push({ 
-            productId, 
-            format, 
-            quantity, 
-            name: product.name, 
-            price: product.price, 
-            originalPrice: product.originalPrice,
-            image: product.image,
-            category: product.category,
-          });
+          updatedCart = [
+            ...localCart,
+            {
+              productId,
+              format,
+              quantity,
+              name: product.name,
+              price: product.price,
+              originalPrice: product.originalPrice,
+              image: product.image,
+              category: product.category,
+            },
+          ];
         }
-        localStorage.setItem('localCart', JSON.stringify(localCart));
-        setCartItems([...localCart]);
+        setCartItems(updatedCart);
+        // Sync to localStorage after UI update
+        setTimeout(() => {
+          localStorage.setItem('localCart', JSON.stringify(updatedCart));
+        }, 0);
         return true;
       }
 
-      // For logged-in users - call API
-      const data = await apiRequest('post', '/api/cart/add', { productId, quantity });
-      if (data.success) {
-        await fetchCart(); // Refresh cart from server
-        return true;
-      }
-      return false;
+      // Optimistically update UI for logged-in users
+      setCartItems(prev => {
+        const existingItemIndex = prev.findIndex(item => item.productId === productId && item.format === format);
+        if (existingItemIndex > -1) {
+          const updated = [...prev];
+          updated[existingItemIndex].quantity += quantity;
+          return updated;
+        } else {
+          return [
+            ...prev,
+            {
+              productId,
+              format,
+              quantity,
+              name: product.name,
+              price: product.price,
+              originalPrice: product.originalPrice,
+              image: product.image,
+              category: product.category,
+            },
+          ];
+        }
+      });
+      // Call API in background, then sync
+      apiRequest('post', '/api/cart/add', { productId, quantity })
+        .then(data => {
+          if (data.success) fetchCart();
+        })
+        .catch(error => {
+          setCartItems(prevCartItems);
+          console.error('Add to Cart Error:', error);
+        });
+      return true;
     } catch (error) {
       console.error('Add to Cart Error:', error);
       setCartItems(prevCartItems);
@@ -148,21 +181,29 @@ const ShopContextProvider = ({ children }) => {
     let prevCartItems = [...cartItems];
     try {
       if (!user) {
+        // Optimistically update local cart for guest users
         const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
         const updatedCart = localCart.filter(item => 
           !(item.productId === productId && item.format === format)
         );
-        localStorage.setItem('localCart', JSON.stringify(updatedCart));
         setCartItems([...updatedCart]);
+        setTimeout(() => {
+          localStorage.setItem('localCart', JSON.stringify(updatedCart));
+        }, 0);
         return true;
       }
 
-      const data = await apiRequest('delete', '/api/cart/remove', { productId });
-      if (data.success) {
-        await fetchCart();
-        return true;
-      }
-      return false;
+      // Optimistically update UI for logged-in users
+      setCartItems(prev => prev.filter(item => !(item.productId === productId && item.format === format)));
+      apiRequest('delete', '/api/cart/remove', { productId })
+        .then(data => {
+          if (data.success) fetchCart();
+        })
+        .catch(error => {
+          setCartItems(prevCartItems);
+          console.error('Remove from Cart Error:', error);
+        });
+      return true;
     } catch (error) {
       console.error('Remove from Cart Error:', error);
       setCartItems(prevCartItems);
@@ -174,21 +215,31 @@ const ShopContextProvider = ({ children }) => {
     let prevCartItems = [...cartItems];
     try {
       if (!user) {
+        // Optimistically update local cart for guest users
         const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
         const updatedCart = localCart.map(item =>
           item.productId === productId && item.format === format ? { ...item, quantity } : item
         );
-        localStorage.setItem('localCart', JSON.stringify(updatedCart));
         setCartItems([...updatedCart]);
+        setTimeout(() => {
+          localStorage.setItem('localCart', JSON.stringify(updatedCart));
+        }, 0);
         return true;
       }
 
-      const data = await apiRequest('put', '/api/cart/update', { productId, quantity });
-      if (data.success) {
-        await fetchCart();
-        return true;
-      }
-      return false;
+      // Optimistically update UI for logged-in users
+      setCartItems(prev => prev.map(item =>
+        item.productId === productId && item.format === format ? { ...item, quantity } : item
+      ));
+      apiRequest('put', '/api/cart/update', { productId, quantity })
+        .then(data => {
+          if (data.success) fetchCart();
+        })
+        .catch(error => {
+          setCartItems(prevCartItems);
+          console.error('Update Cart Error:', error);
+        });
+      return true;
     } catch (error) {
       console.error('Update Cart Error:', error);
       setCartItems(prevCartItems);
@@ -206,40 +257,49 @@ const ShopContextProvider = ({ children }) => {
       }
 
       if (!user) {
+        // Optimistically update local wishlist for guest users
         const localWishlist = JSON.parse(localStorage.getItem('localWishlist') || '[]');
+        let updatedWishlist;
         if (localWishlist.includes(productId)) {
-          const updatedWishlist = localWishlist.filter(id => id !== productId);
-          localStorage.setItem('localWishlist', JSON.stringify(updatedWishlist));
-          setWishlistItems(updatedWishlist.map(id => ({ productId: id })));
-          return true;
+          updatedWishlist = localWishlist.filter(id => id !== productId);
         } else {
           if (localWishlist.length >= 10) {
             toast.error('Wishlist is full');
             return false;
           }
-          localWishlist.push(productId);
-          localStorage.setItem('localWishlist', JSON.stringify(localWishlist));
-          setWishlistItems(localWishlist.map(id => ({ productId: id })));
-          return true;
+          updatedWishlist = [...localWishlist, productId];
         }
+        setWishlistItems(updatedWishlist.map(id => ({ productId: id })));
+        setTimeout(() => {
+          localStorage.setItem('localWishlist', JSON.stringify(updatedWishlist));
+        }, 0);
+        return true;
       }
 
       const isInWishlist = wishlistItems.some(item => item.productId === productId);
-      
+      // Optimistically update UI for logged-in users
       if (isInWishlist) {
-        const data = await apiRequest('delete', '/api/wishlist/remove', { productId });
-        if (data.success) {
-          await fetchWishlist();
-          return true;
-        }
-        return false;
+        setWishlistItems(prev => prev.filter(item => item.productId !== productId));
+        apiRequest('delete', '/api/wishlist/remove', { productId })
+          .then(data => {
+            if (data.success) fetchWishlist();
+          })
+          .catch(error => {
+            setWishlistItems(prevWishlistItems);
+            console.error('Toggle Wishlist Error:', error);
+          });
+        return true;
       } else {
-        const data = await apiRequest('post', '/api/wishlist/add', { productId });
-        if (data.success) {
-          await fetchWishlist();
-          return true;
-        }
-        return false;
+        setWishlistItems(prev => [...prev, { productId }]);
+        apiRequest('post', '/api/wishlist/add', { productId })
+          .then(data => {
+            if (data.success) fetchWishlist();
+          })
+          .catch(error => {
+            setWishlistItems(prevWishlistItems);
+            console.error('Toggle Wishlist Error:', error);
+          });
+        return true;
       }
     } catch (error) {
       setWishlistItems(prevWishlistItems);
@@ -252,19 +312,27 @@ const ShopContextProvider = ({ children }) => {
     let prevWishlistItems = [...wishlistItems];
     try {
       if (!user) {
+        // Optimistically update local wishlist for guest users
         const localWishlist = JSON.parse(localStorage.getItem('localWishlist') || '[]');
         const updatedWishlist = localWishlist.filter(id => id !== productId);
-        localStorage.setItem('localWishlist', JSON.stringify(updatedWishlist));
         setWishlistItems(updatedWishlist.map(id => ({ productId: id })));
+        setTimeout(() => {
+          localStorage.setItem('localWishlist', JSON.stringify(updatedWishlist));
+        }, 0);
         return true;
       }
 
-      const data = await apiRequest('delete', '/api/wishlist/remove', { productId });
-      if (data.success) {
-        await fetchWishlist();
-        return true;
-      }
-      return false;
+      // Optimistically update UI for logged-in users
+      setWishlistItems(prev => prev.filter(item => item.productId !== productId));
+      apiRequest('delete', '/api/wishlist/remove', { productId })
+        .then(data => {
+          if (data.success) fetchWishlist();
+        })
+        .catch(error => {
+          setWishlistItems(prevWishlistItems);
+          console.error('Remove from Wishlist Error:', error);
+        });
+      return true;
     } catch (error) {
       setWishlistItems(prevWishlistItems);
       console.error('Remove from Wishlist Error:', error);
