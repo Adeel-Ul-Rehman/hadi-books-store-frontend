@@ -96,11 +96,14 @@ const isAuthenticated = async () => {
       return { success: false, message: "Not authenticated" };
     }
   } catch (err) {
-    if (err.response?.status === 401 && localStorage.getItem("user")) {
+    // FIX: Handle network errors gracefully
+    if (err.code === 'NETWORK_ERROR' || err.message === 'Network Error') {
+      console.warn('Authentication check failed - network error');
+    } else if (err.response?.status === 401 && localStorage.getItem("user")) {
       localStorage.removeItem("user");
     }
     setUser(null);
-    return { success: false, message: "Not authenticated" };
+    return { success: false, message: "Network error - using guest mode" };
   } finally {
     setIsLoading(false);
   }

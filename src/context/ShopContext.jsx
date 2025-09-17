@@ -51,7 +51,9 @@ const ShopContextProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Fetch Products Error:', error);
-      setProducts([]);
+      if (products.length === 0) {
+        setProducts([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -391,7 +393,7 @@ const processCheckout = async (checkoutData) => {
 
   useEffect(() => {
     fetchProducts();
-  }, [user]);
+  }, []);
 
 return (
   <ShopContext.Provider
