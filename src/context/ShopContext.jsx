@@ -17,7 +17,7 @@ const ShopContextProvider = ({ children }) => {
   const [apiAvailable, setApiAvailable] = useState(true);
 
   // Initialize from localStorage for non-auth users, or fetch for auth users
-  useEffect(() => {
+ useEffect(() => {
     if (!user) {
       const localWishlist = JSON.parse(localStorage.getItem('localWishlist') || '[]');
       const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
@@ -35,7 +35,7 @@ const ShopContextProvider = ({ children }) => {
     fetchProducts();
   }, []); // Empty dependency array to run only once on mount
 
-  const fetchProducts = async (category = '', search = '', bestseller = false) => {
+ const fetchProducts = async (category = '', search = '', bestseller = false) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -45,8 +45,10 @@ const ShopContextProvider = ({ children }) => {
       params.append('page', '1');
       params.append('limit', '120');
 
-      const data = await apiRequest('get', `/api/products/get?${params.toString()}`);
-      if (data.success) {
+      // Use suppressAuthError to prevent 401 errors from interrupting product loading
+      const data = await apiRequest('get', `/api/products/get?${params.toString()}`, null, {}, true);
+      
+      if (data && data.success) {
         const productsWithSubCategories = data.products.map(product => ({
           ...product,
           subCategories: product.subCategories || [],
@@ -54,7 +56,10 @@ const ShopContextProvider = ({ children }) => {
         setProducts(productsWithSubCategories || []);
         setApiAvailable(true);
       } else {
-        setProducts([]);
+        // If API returns error but we have products, keep them
+        if (products.length === 0) {
+          setProducts([]);
+        }
       }
     } catch (error) {
       console.error('Fetch Products Error:', error);
@@ -69,12 +74,12 @@ const ShopContextProvider = ({ children }) => {
   };
 
   const fetchCart = async () => {
-    if (!user) return; // Don't fetch if no user
+    if (!user) return;
     
     setLoading(true);
     try {
-      const data = await apiRequest('get', `/api/cart/get/${user.id}`);
-      if (data.success) {
+      const data = await apiRequest('get', `/api/cart/get/${user.id}`, null, {}, true);
+      if (data && data.success) {
         setCartItems(data.cart?.items || []);
       } else {
         setCartItems([]);
@@ -87,13 +92,13 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
-  const fetchWishlist = async () => {
-    if (!user) return; // Don't fetch if no user
+ const fetchWishlist = async () => {
+    if (!user) return;
     
     setLoading(true);
     try {
-      const data = await apiRequest('get', `/api/wishlist/get/${user.id}`);
-      if (data.success) {
+      const data = await apiRequest('get', `/api/wishlist/get/${user.id}`, null, {}, true);
+      if (data && data.success) {
         setWishlistItems(data.wishlist?.items || []);
       } else {
         setWishlistItems([]);
