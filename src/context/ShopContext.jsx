@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import "../toastStyles.css";
 import { AppContext } from './AppContext';
 import { toast } from 'react-toastify';
 

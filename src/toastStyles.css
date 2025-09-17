@@ -1,0 +1,26 @@
+/* Custom Toast styles for react-toastify */
+@media (max-width: 640px) {
+  .Toastify__toast {
+    min-width: 60vw !important;
+    max-width: 80vw !important;
+    width: auto !important;
+    font-size: 0.85rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin: 0 auto !important;
+    border-radius: 10px !important;
+    padding: 0.5em 1em !important;
+  }
+  .Toastify__toast-container {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    top: 1.5em !important;
+    bottom: auto !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    display: flex !important;
+  }
+}

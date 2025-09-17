@@ -1,12 +1,18 @@
 import React, { createContext, useState, useEffect } from "react";
+import "../toastStyles.css";
 import axios from "axios";
 import validator from "validator";
 import { toast } from "react-toastify";
 
 export const AppContext = createContext();
 
+
 const AppContextProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  // Try to restore user from localStorage on mount
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem("user");
+    return stored ? JSON.parse(stored) : null;
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -14,8 +20,18 @@ const AppContextProvider = ({ children }) => {
 
   // Configure Axios default settings
   useEffect(() => {
-     axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+    axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
     axios.defaults.withCredentials = true;
+  }, []);
+
+  // On mount, if user exists in localStorage, verify session with backend
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored && !user) {
+      setUser(JSON.parse(stored));
+    }
+    // Optionally, you can call isAuthenticated() here to verify session
+    // isAuthenticated();
   }, []);
 
   const apiRequest = async (method, url, data = null, config = {}) => {
