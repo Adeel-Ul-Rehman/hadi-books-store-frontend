@@ -14,7 +14,7 @@ const AppContextProvider = ({ children }) => {
 
   // Configure Axios default settings
   useEffect(() => {
-     axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+    axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
     axios.defaults.withCredentials = true;
   }, []);
 
@@ -31,7 +31,7 @@ const AppContextProvider = ({ children }) => {
     } catch (err) {
       const message = err.response?.data?.message || "An unexpected error occurred";
       
-      // Only set error for non-401 errors (authentication failures are normal)
+      // Only show error toast for non-401 errors
       if (err.response?.status !== 401) {
         setError(message);
       }
@@ -45,12 +45,11 @@ const AppContextProvider = ({ children }) => {
         toast.error("Session expired. Please login again.");
       }
 
-      // Re-throw the error so components can handle it appropriately
       throw err;
     }
   };
 
- const isAuthenticated = async () => {
+  const isAuthenticated = async () => {
     setIsLoading(true);
     try {
       const data = await apiRequest("get", "/api/auth/is-auth");
@@ -474,7 +473,7 @@ const AppContextProvider = ({ children }) => {
     try {
       const data = await apiRequest(
         "post",
-        "/checkout/upload-proof",
+        "/api/checkout/upload-proof", // Fixed path to include /api
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
