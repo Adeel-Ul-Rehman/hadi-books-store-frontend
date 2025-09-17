@@ -15,7 +15,7 @@ const AppContextProvider = ({ children }) => {
   // Configure Axios default settings
   useEffect(() => {
      axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
-    // axios.defaults.withCredentials = true;
+    axios.defaults.withCredentials = true;
   }, []);
 
   const apiRequest = async (method, url, data = null, config = {}) => {
