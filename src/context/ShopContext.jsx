@@ -42,6 +42,7 @@ const ShopContextProvider = ({ children }) => {
 
       const data = await apiRequest('get', `/api/products/get?${params.toString()}`);
       if (data.success) {
+        console.log("Shayan is testiing in frontend in data.success at fetchProducts in ShopContext")
         const productsWithSubCategories = data.products.map(product => ({
           ...product,
           subCategories: product.subCategories || [],
