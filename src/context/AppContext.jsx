@@ -10,7 +10,7 @@ const AppContextProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const apiUrl = import.meta.env.VITE_API_URL || "/api";
+  const apiUrl = import.meta.env.VITE_API_URL || "/api"; // Use Vite proxy prefix for same-origin requests
 
   // Configure Axios default settings
   useEffect(() => {
@@ -56,39 +56,20 @@ const AppContextProvider = ({ children }) => {
         err.response?.data?.message || "An unexpected error occurred";
       setError(message);
 
-      // Auto-logout on 401 errors but don't show toast for auth check
+      // Auto-logout on 401 errors
       if (err.response?.status === 401) {
         setUser(null);
         localStorage.removeItem("user");
         localStorage.removeItem("localCart");
         localStorage.removeItem("localWishlist");
-        
-        // Only show toast if it's not an authentication check request
-        if (!url.includes("/auth/is-auth")) {
-          toast.error("Session expired. Please login again.");
-        }
+        toast.error("Session expired. Please login again.");
       }
 
       throw err;
     }
   };
 
-  const isAuthenticated = async () => {
-    try {
-      const data = await apiRequest("get", "/api/auth/is-auth");
-      if (data.success) {
-        setUser(data.user);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        return true;
-      }
-      return false;
-    } catch (err) {
-      // Silently handle auth check failures - don't show errors or toasts
-      setUser(null);
-      localStorage.removeItem("user");
-      return false;
-    }
-  };
+s
 
   const register = async (userData) => {
     setIsLoading(true);
@@ -140,52 +121,55 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
-    setIsLoading(true);
-    if (!email || !password) {
-      setIsLoading(false);
-      return { success: false, message: "Email and password are required" };
-    }
-    if (!validator.isEmail(email)) {
-      setIsLoading(false);
-      return { success: false, message: "Invalid email format" };
-    }
+const login = async (email, password) => {
+  setIsLoading(true);
+  if (!email || !password) {
+    setIsLoading(false);
+    return { success: false, message: "Email and password are required" };
+  }
+  if (!validator.isEmail(email)) {
+    setIsLoading(false);
+    return { success: false, message: "Invalid email format" };
+  }
 
-    const localCart = JSON.parse(localStorage.getItem("localCart") || "[]");
-    const localWishlist = JSON.parse(
-      localStorage.getItem("localWishlist") || "[]"
-    );
-    try {
-      const data = await apiRequest("post", "/api/auth/login", {
-        email,
-        password,
-        localCart,
-        localWishlist,
-      });
-      if (data.success) {
-        // Call isAuthenticated to refresh the user data with complete profile info
-        await isAuthenticated();
-        
-        if (data.wishlistSynced) {
-          localStorage.removeItem("localWishlist");
-        }
-        if (data.cartSynced) {
-          localStorage.removeItem("localCart");
-        }
-        if (data.syncErrors && data.syncErrors.length > 0) {
-          console.warn("Login sync errors:", data.syncErrors);
-        }
+  const localCart = JSON.parse(localStorage.getItem("localCart") || "[]");
+  const localWishlist = JSON.parse(
+    localStorage.getItem("localWishlist") || "[]"
+  );
+  try {
+    const data = await apiRequest("post", "/api/auth/login", {
+      email,
+      password,
+      localCart,
+      localWishlist,
+    });
+    if (data.success) {
+      // Call isAuthenticated to refresh the user data with complete profile info
+      await isAuthenticated();
+      
+      // Remove the manual setUser and localStorage setting here
+      // The isAuthenticated call above will handle this
+      
+      if (data.wishlistSynced) {
+        localStorage.removeItem("localWishlist");
       }
-      return data;
-    } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || "Login failed",
-      };
-    } finally {
-      setIsLoading(false);
+      if (data.cartSynced) {
+        localStorage.removeItem("localCart");
+      }
+      if (data.syncErrors && data.syncErrors.length > 0) {
+        console.warn("Login sync errors:", data.syncErrors);
+      }
     }
-  };
+    return data;
+  } catch (err) {
+    return {
+      success: false,
+      message: err.response?.data?.message || "Login failed",
+    };
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const verifyEmail = async (otp) => {
     setIsLoading(true);
