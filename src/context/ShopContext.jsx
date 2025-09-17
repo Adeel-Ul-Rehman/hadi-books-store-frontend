@@ -29,8 +29,7 @@ const ShopContextProvider = ({ children }) => {
     }
   }, [user]);
 
-  const fetchProducts = async (category = '', search = '', bestseller = false) => {
-    console.log("Shayan is testiing in frontend at fetchProducts in ShopContext")
+ const fetchProducts = async (category = '', search = '', bestseller = false) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -40,28 +39,26 @@ const ShopContextProvider = ({ children }) => {
       params.append('page', '1');
       params.append('limit', '120');
 
-      const data = apiRequest('get', `/api/products/get?${params.toString()}`);
+      const data = await apiRequest('get', `/api/products/get?${params.toString()}`);
       if (data.success) {
-        console.log("Shayan is testiing in frontend in if statement of data.success at fetchProducts in ShopContext")
         const productsWithSubCategories = data.products.map(product => ({
           ...product,
           subCategories: product.subCategories || [],
         }));
         setProducts(productsWithSubCategories || []);
       } else {
-        console.log("Shayan is testiing in frontend in else statement of data.success at fetchProducts in ShopContext")
-    
         setProducts([]);
       }
     } catch (error) {
       console.error('Fetch Products Error:', error);
+      // Even if there's an error, set empty products instead of breaking
       setProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchCart = async () => {
+ const fetchCart = async () => {
     if (!user) return; // Don't fetch if no user
     
     setLoading(true);

@@ -19,7 +19,6 @@ const AppContextProvider = ({ children }) => {
   }, []);
 
   const apiRequest = async (method, url, data = null, config = {}) => {
-    console.log("In apiRequest-Shayan")
     setError(null);
     try {
       const response = await axios({
@@ -28,12 +27,11 @@ const AppContextProvider = ({ children }) => {
         data,
         ...config,
       });
-      console.log("Shayan response data is",response,data)
       return response.data;
     } catch (err) {
       const message = err.response?.data?.message || "An unexpected error occurred";
       
-      // Only show error toast for non-401 errors
+      // Only set error for non-401 errors (authentication failures are normal)
       if (err.response?.status !== 401) {
         setError(message);
       }
@@ -47,11 +45,12 @@ const AppContextProvider = ({ children }) => {
         toast.error("Session expired. Please login again.");
       }
 
+      // Re-throw the error so components can handle it appropriately
       throw err;
     }
   };
 
-  const isAuthenticated = async () => {
+ const isAuthenticated = async () => {
     setIsLoading(true);
     try {
       const data = await apiRequest("get", "/api/auth/is-auth");
