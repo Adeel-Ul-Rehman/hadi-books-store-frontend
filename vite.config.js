@@ -31,7 +31,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'https://hadi-books-store-backend-2.onrender.com',
+        target: 'https://hadi-books-store-backend-4.onrender.com',
         changeOrigin: true,
         secure: false, // Changed to false for Render.com compatibility
         rewrite: (path) => path.replace(/^\/api/, '/api'), // Keep /api prefix for backend
@@ -53,7 +53,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'https://hadi-books-store-backend-2.onrender.com',
+        target: 'https://hadi-books-store-backend-4.onrender.com',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
