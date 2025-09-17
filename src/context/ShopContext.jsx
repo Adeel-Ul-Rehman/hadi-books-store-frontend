@@ -30,6 +30,7 @@ const ShopContextProvider = ({ children }) => {
   }, [user]);
 
   const fetchProducts = async (category = '', search = '', bestseller = false) => {
+    console.log("Shayan is tesiting in backend at getProduct in product controler")
     setLoading(true);
     try {
       const params = new URLSearchParams();
