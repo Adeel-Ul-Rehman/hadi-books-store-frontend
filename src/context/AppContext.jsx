@@ -10,7 +10,7 @@ const AppContextProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const apiUrl = import.meta.env.VITE_API_URL || "/api"; // Use Vite proxy prefix for same-origin requests
+  const apiUrl = import.meta.env.VITE_API_URL || "/api";
 
   // Configure Axios default settings
   useEffect(() => {
@@ -36,11 +36,6 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // Check authentication on component mount
-  useEffect(() => {
-    isAuthenticated();
-  }, []);
-
   const apiRequest = async (method, url, data = null, config = {}) => {
     setError(null);
     try {
@@ -54,57 +49,60 @@ const AppContextProvider = ({ children }) => {
     } catch (err) {
       const message =
         err.response?.data?.message || "An unexpected error occurred";
-      setError(message);
 
-      // Auto-logout on 401 errors
-      if (err.response?.status === 401) {
+      // Only trigger auto-logout and toast for specific auth errors, not for is-auth
+      if (
+        err.response?.status === 401 &&
+        url !== "/api/auth/is-auth" &&
+        (err.response?.data?.message === "Authentication token has expired" ||
+          err.response?.data?.message === "Invalid authentication token")
+      ) {
         setUser(null);
         localStorage.removeItem("user");
         localStorage.removeItem("localCart");
         localStorage.removeItem("localWishlist");
         toast.error("Session expired. Please login again.");
+      } else {
+        setError(message);
       }
 
       throw err;
     }
   };
 
-const isAuthenticated = async () => {
-  setIsLoading(true);
-  try {
-    const data = await apiRequest("get", "/api/auth/is-auth");
-    if (data.success && data.user) {
-      setUser({
-        id: data.user.id,
-        name: data.user.name,
-        lastName: data.user.lastName,
-        email: data.user.email,
-        isAccountVerified: data.user.isAccountVerified,
-        address: data.user.address,
-        postCode: data.user.postCode,
-        city: data.user.city,
-        country: data.user.country,
-        shippingAddress: data.user.shippingAddress,
-        mobileNumber: data.user.mobileNumber,
-        profilePicture: data.user.profilePicture,
-      });
-      localStorage.setItem("user", JSON.stringify(data.user));
+  const isAuthenticated = async () => {
+    setIsLoading(true);
+    try {
+      const data = await apiRequest("get", "/api/auth/is-auth");
+      if (data.success && data.user) {
+        setUser({
+          id: data.user.id,
+          name: data.user.name,
+          lastName: data.user.lastName,
+          email: data.user.email,
+          isAccountVerified: data.user.isAccountVerified,
+          address: data.user.address,
+          postCode: data.user.postCode,
+          city: data.user.city,
+          country: data.user.country,
+          shippingAddress: data.user.shippingAddress,
+          mobileNumber: data.user.mobileNumber,
+          profilePicture: data.user.profilePicture,
+        });
+        localStorage.setItem("user", JSON.stringify(data.user));
+      } else {
+        setUser(null);
+        localStorage.removeItem("user");
+      }
       return data;
-    } else {
+    } catch (err) {
       setUser(null);
       localStorage.removeItem("user");
       return { success: false, message: "Not authenticated" };
+    } finally {
+      setIsLoading(false);
     }
-  } catch (err) {
-    if (err.response?.status === 401 && localStorage.getItem("user")) {
-      localStorage.removeItem("user");
-    }
-    setUser(null);
-    return { success: false, message: "Not authenticated" };
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const register = async (userData) => {
     setIsLoading(true);
@@ -156,55 +154,50 @@ const isAuthenticated = async () => {
     }
   };
 
-const login = async (email, password) => {
-  setIsLoading(true);
-  if (!email || !password) {
-    setIsLoading(false);
-    return { success: false, message: "Email and password are required" };
-  }
-  if (!validator.isEmail(email)) {
-    setIsLoading(false);
-    return { success: false, message: "Invalid email format" };
-  }
-
-  const localCart = JSON.parse(localStorage.getItem("localCart") || "[]");
-  const localWishlist = JSON.parse(
-    localStorage.getItem("localWishlist") || "[]"
-  );
-  try {
-    const data = await apiRequest("post", "/api/auth/login", {
-      email,
-      password,
-      localCart,
-      localWishlist,
-    });
-    if (data.success) {
-      // Call isAuthenticated to refresh the user data with complete profile info
-      await isAuthenticated();
-      
-      // Remove the manual setUser and localStorage setting here
-      // The isAuthenticated call above will handle this
-      
-      if (data.wishlistSynced) {
-        localStorage.removeItem("localWishlist");
-      }
-      if (data.cartSynced) {
-        localStorage.removeItem("localCart");
-      }
-      if (data.syncErrors && data.syncErrors.length > 0) {
-        console.warn("Login sync errors:", data.syncErrors);
-      }
+  const login = async (email, password) => {
+    setIsLoading(true);
+    if (!email || !password) {
+      setIsLoading(false);
+      return { success: false, message: "Email and password are required" };
     }
-    return data;
-  } catch (err) {
-    return {
-      success: false,
-      message: err.response?.data?.message || "Login failed",
-    };
-  } finally {
-    setIsLoading(false);
-  }
-};
+    if (!validator.isEmail(email)) {
+      setIsLoading(false);
+      return { success: false, message: "Invalid email format" };
+    }
+
+    const localCart = JSON.parse(localStorage.getItem("localCart") || "[]");
+    const localWishlist = JSON.parse(
+      localStorage.getItem("localWishlist") || "[]"
+    );
+    try {
+      const data = await apiRequest("post", "/api/auth/login", {
+        email,
+        password,
+        localCart,
+        localWishlist,
+      });
+      if (data.success) {
+        await isAuthenticated(); // Refresh user data
+        if (data.wishlistSynced) {
+          localStorage.removeItem("localWishlist");
+        }
+        if (data.cartSynced) {
+          localStorage.removeItem("localCart");
+        }
+        if (data.syncErrors && data.syncErrors.length > 0) {
+          console.warn("Login sync errors:", data.syncErrors);
+        }
+      }
+      return data;
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || "Login failed",
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const verifyEmail = async (otp) => {
     setIsLoading(true);
@@ -323,6 +316,7 @@ const login = async (email, password) => {
       setIsLoading(false);
     }
   };
+
   const resetPassword = async (email, otp, newPassword, confirmPassword) => {
     setIsLoading(true);
     if (!email || !otp || !newPassword || !confirmPassword) {
@@ -492,7 +486,7 @@ const login = async (email, password) => {
     try {
       const data = await apiRequest(
         "post",
-        "/checkout/upload-proof",
+        "/api/checkout/upload-proof",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
