@@ -10,6 +10,8 @@ const AppContextProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const apiUrl = import.meta.env.VITE_API_URL || "/api";
+
   // Configure Axios default settings
   useEffect(() => {
     axios.defaults.baseURL =
@@ -17,14 +19,14 @@ const AppContextProvider = ({ children }) => {
     axios.defaults.withCredentials = true;
   }, []);
 
-  // Retry helper (still here, unused but can help later)
+  // Retry helper function for API requests (no retry on 401 to avoid loops)
   const retryRequest = async (fn, retries = 3, delay = 1000) => {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         return await fn();
       } catch (err) {
         if (err.response?.status === 401) {
-          throw err;
+          throw err; // No retry on auth errors
         }
         if (attempt === retries || err.response?.status < 500) {
           throw err;
@@ -34,7 +36,11 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // Safe API request wrapper
+  // Check authentication on component mount
+  useEffect(() => {
+    isAuthenticated();
+  }, []);
+
   const apiRequest = async (method, url, data = null, config = {}) => {
     setError(null);
     try {
@@ -50,50 +56,39 @@ const AppContextProvider = ({ children }) => {
         err.response?.data?.message || "An unexpected error occurred";
       setError(message);
 
-      // Only auto-logout if it's not the "is-auth" check
-      if (err.response?.status === 401 && !url.includes("/auth/is-auth")) {
+      // Auto-logout on 401 errors but don't show toast for auth check
+      if (err.response?.status === 401) {
         setUser(null);
         localStorage.removeItem("user");
         localStorage.removeItem("localCart");
         localStorage.removeItem("localWishlist");
-        toast.error("Session expired. Please login again.");
+        
+        // Only show toast if it's not an authentication check request
+        if (!url.includes("/auth/is-auth")) {
+          toast.error("Session expired. Please login again.");
+        }
       }
 
       throw err;
     }
   };
 
-  // Check authentication safely
   const isAuthenticated = async () => {
     try {
       const data = await apiRequest("get", "/api/auth/is-auth");
       if (data.success) {
         setUser(data.user);
         localStorage.setItem("user", JSON.stringify(data.user));
+        return true;
       }
-      return data;
+      return false;
     } catch (err) {
-      if (err.response?.status === 401) {
-        // Not logged in → just ignore, no toast, no logout
-        setUser(null);
-        localStorage.removeItem("user");
-        return { success: false, message: "Not authenticated" };
-      }
-      return {
-        success: false,
-        message: err.response?.data?.message || "Auth check failed",
-      };
+      // Silently handle auth check failures - don't show errors or toasts
+      setUser(null);
+      localStorage.removeItem("user");
+      return false;
     }
   };
-
-  // Run once on mount
-  useEffect(() => {
-    isAuthenticated();
-  }, []);
-
-  // ===========================
-  // AUTH FUNCTIONS
-  // ===========================
 
   const register = async (userData) => {
     setIsLoading(true);
@@ -168,8 +163,9 @@ const AppContextProvider = ({ children }) => {
         localWishlist,
       });
       if (data.success) {
-        await isAuthenticated(); // refresh user info
-
+        // Call isAuthenticated to refresh the user data with complete profile info
+        await isAuthenticated();
+        
         if (data.wishlistSynced) {
           localStorage.removeItem("localWishlist");
         }
@@ -245,9 +241,7 @@ const AppContextProvider = ({ children }) => {
       return { success: false, message: "Valid email is required" };
     }
     try {
-      const data = await apiRequest("post", "/api/auth/send-reset-otp", {
-        email,
-      });
+      const data = await apiRequest("post", "/api/auth/send-reset-otp", { email });
       return data;
     } catch (err) {
       return {
@@ -281,12 +275,36 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  const resetPassword = async (
-    email,
-    otp,
-    newPassword,
-    confirmPassword
-  ) => {
+  const fetchUserOrders = async () => {
+    setIsLoading(true);
+    try {
+      const data = await apiRequest("get", "/api/orders/get");
+      return data;
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to fetch orders",
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const createOrder = async (orderData) => {
+    setIsLoading(true);
+    try {
+      const data = await apiRequest("post", "/api/orders/create", orderData);
+      return data;
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to create order",
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const resetPassword = async (email, otp, newPassword, confirmPassword) => {
     setIsLoading(true);
     if (!email || !otp || !newPassword || !confirmPassword) {
       setIsLoading(false);
@@ -351,14 +369,9 @@ const AppContextProvider = ({ children }) => {
   const updateUser = async (formData) => {
     setIsLoading(true);
     try {
-      const data = await apiRequest(
-        "put",
-        "/api/auth/update-profile",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const data = await apiRequest("put", "/api/auth/update-profile", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       if (data.success) {
         setUser({
@@ -391,10 +404,7 @@ const AppContextProvider = ({ children }) => {
   const removeProfilePicture = async () => {
     setIsLoading(true);
     try {
-      const data = await apiRequest(
-        "delete",
-        "/api/auth/remove-profile-picture"
-      );
+      const data = await apiRequest("delete", "/api/auth/remove-profile-picture");
       if (data.success) {
         setUser((prev) => ({ ...prev, profilePicture: null }));
         localStorage.setItem(
@@ -440,40 +450,6 @@ const AppContextProvider = ({ children }) => {
       return {
         success: false,
         message: err.response?.data?.message || "Account deletion failed",
-      };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // ===========================
-  // ORDERS & PAYMENTS
-  // ===========================
-
-  const fetchUserOrders = async () => {
-    setIsLoading(true);
-    try {
-      const data = await apiRequest("get", "/api/orders/get");
-      return data;
-    } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || "Failed to fetch orders",
-      };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const createOrder = async (orderData) => {
-    setIsLoading(true);
-    try {
-      const data = await apiRequest("post", "/api/orders/create", orderData);
-      return data;
-    } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || "Failed to create order",
       };
     } finally {
       setIsLoading(false);
