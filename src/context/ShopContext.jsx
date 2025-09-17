@@ -14,10 +14,9 @@ const ShopContextProvider = ({ children }) => {
   const [wishlistItems, setWishlistItems] = useState([]);
   const [currency] = useState('Rs.');
   const [loading, setLoading] = useState(false);
-  const [apiAvailable, setApiAvailable] = useState(true);
 
   // Initialize from localStorage for non-auth users, or fetch for auth users
- useEffect(() => {
+  useEffect(() => {
     if (!user) {
       const localWishlist = JSON.parse(localStorage.getItem('localWishlist') || '[]');
       const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
@@ -30,12 +29,7 @@ const ShopContextProvider = ({ children }) => {
     }
   }, [user]);
 
-  // FIX: Fetch products on component mount, not dependent on user
-  useEffect(() => {
-    fetchProducts();
-  }, []); // Empty dependency array to run only once on mount
-
- const fetchProducts = async (category = '', search = '', bestseller = false) => {
+  const fetchProducts = async (category = '', search = '', bestseller = false) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -45,41 +39,31 @@ const ShopContextProvider = ({ children }) => {
       params.append('page', '1');
       params.append('limit', '120');
 
-      // Use suppressAuthError to prevent 401 errors from interrupting product loading
-      const data = await apiRequest('get', `/api/products/get?${params.toString()}`, null, {}, true);
-      
-      if (data && data.success) {
+      const data = await apiRequest('get', `/api/products/get?${params.toString()}`);
+      if (data.success) {
         const productsWithSubCategories = data.products.map(product => ({
           ...product,
           subCategories: product.subCategories || [],
         }));
         setProducts(productsWithSubCategories || []);
-        setApiAvailable(true);
       } else {
-        // If API returns error but we have products, keep them
-        if (products.length === 0) {
-          setProducts([]);
-        }
+        setProducts([]);
       }
     } catch (error) {
       console.error('Fetch Products Error:', error);
-      setApiAvailable(false);
-      // Keep existing products if API fails but we already have some
-      if (products.length === 0) {
-        setProducts([]);
-      }
+      setProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
   const fetchCart = async () => {
-    if (!user) return;
+    if (!user) return; // Don't fetch if no user
     
     setLoading(true);
     try {
-      const data = await apiRequest('get', `/api/cart/get/${user.id}`, null, {}, true);
-      if (data && data.success) {
+      const data = await apiRequest('get', `/api/cart/get/${user.id}`);
+      if (data.success) {
         setCartItems(data.cart?.items || []);
       } else {
         setCartItems([]);
@@ -92,13 +76,13 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
- const fetchWishlist = async () => {
-    if (!user) return;
+  const fetchWishlist = async () => {
+    if (!user) return; // Don't fetch if no user
     
     setLoading(true);
     try {
-      const data = await apiRequest('get', `/api/wishlist/get/${user.id}`, null, {}, true);
-      if (data && data.success) {
+      const data = await apiRequest('get', `/api/wishlist/get/${user.id}`);
+      if (data.success) {
         setWishlistItems(data.wishlist?.items || []);
       } else {
         setWishlistItems([]);
@@ -329,66 +313,68 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
-  const uploadPaymentProof = async (orderId, file) => {
-    setLoading(true);
-    if (!orderId || !file) {
-      setLoading(false);
-      return { success: false, message: 'Order ID and proof file are required' };
-    }
+// Add these functions to your existing ShopContext
 
-    const formData = new FormData();
-    formData.append('orderId', orderId);
-    formData.append('proof', file);
+const uploadPaymentProof = async (orderId, file) => {
+  setLoading(true);
+  if (!orderId || !file) {
+    setLoading(false);
+    return { success: false, message: 'Order ID and proof file are required' };
+  }
 
-    try {
-      const data = await apiRequest('post', '/api/checkout/upload-proof', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      return data;
-    } catch (error) {
-      console.error('Upload Payment Proof Error:', error);
-      return { success: false, message: error.response?.data?.message || 'Failed to upload payment proof' };
-    } finally {
-      setLoading(false);
-    }
-  };
+  const formData = new FormData();
+  formData.append('orderId', orderId);
+  formData.append('proof', file);
 
-  const calculateCheckout = async (items) => {
-    try {
-      const data = await apiRequest('post', '/api/checkout/calculate', { 
-        items,
-        taxes: items.reduce((sum, item) => {
-          const product = products.find(p => p.id === item.productId);
-          return sum + (product ? product.price * item.quantity : 0);
-        }, 0) * TAX_RATE,
-        shippingFee: SHIPPING_FEE,
-      });
-      return data;
-    } catch (error) {
-      console.error('Calculate Checkout Error:', error);
-      return { success: false, message: 'Failed to calculate checkout totals' };
-    }
-  };
+  try {
+    const data = await apiRequest('post', '/api/checkout/upload-proof', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+  } catch (error) {
+    console.error('Upload Payment Proof Error:', error);
+    return { success: false, message: error.response?.data?.message || 'Failed to upload payment proof' };
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const processCheckout = async (checkoutData) => {
-    try {
-      const { paymentMethod, onlinePaymentOption, ...rest } = checkoutData;
-      const data = await apiRequest('post', '/api/checkout/process', {
-        ...rest,
-        paymentMethod,
-        onlinePaymentOption: paymentMethod === 'online' ? onlinePaymentOption : undefined,
-        taxes: rest.items.reduce((sum, item) => {
-          const product = products.find(p => p.id === item.productId);
-          return sum + (product ? product.price * item.quantity : 0);
-        }, 0) * TAX_RATE,
-        shippingFee: SHIPPING_FEE,
-      });
-      return data;
-    } catch (error) {
-      console.error('Process Checkout Error:', error);
-      return { success: false, message: 'Failed to process checkout' };
-    }
-  };
+const calculateCheckout = async (items) => {
+  try {
+    const data = await apiRequest('post', '/api/checkout/calculate', { 
+      items,
+      taxes: items.reduce((sum, item) => {
+        const product = products.find(p => p.id === item.productId);
+        return sum + (product ? product.price * item.quantity : 0);
+      }, 0) * TAX_RATE,
+      shippingFee: SHIPPING_FEE,
+    });
+    return data;
+  } catch (error) {
+    console.error('Calculate Checkout Error:', error);
+    return { success: false, message: 'Failed to calculate checkout totals' };
+  }
+};
+
+const processCheckout = async (checkoutData) => {
+  try {
+    const { paymentMethod, onlinePaymentOption, ...rest } = checkoutData;
+    const data = await apiRequest('post', '/api/checkout/process', {
+      ...rest,
+      paymentMethod,
+      onlinePaymentOption: paymentMethod === 'online' ? onlinePaymentOption : undefined,
+      taxes: rest.items.reduce((sum, item) => {
+        const product = products.find(p => p.id === item.productId);
+        return sum + (product ? product.price * item.quantity : 0);
+      }, 0) * TAX_RATE,
+      shippingFee: SHIPPING_FEE,
+    });
+    return data;
+  } catch (error) {
+    console.error('Process Checkout Error:', error);
+    return { success: false, message: 'Failed to process checkout' };
+  }
+};
 
   const fetchHeroImages = async () => {
     try {
@@ -403,39 +389,41 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
-  return (
-    <ShopContext.Provider
-      value={{
-        products,
-        cartItems,
-        wishlistItems,
-        currency,
-        addToCart,
-        removeFromCart,
-        updateCart,
-        toggleWishlistItem,
-        removeFromWishlist,
-        isInWishlist,
-        getCartCount,
-        getWishlistCount,
-        getProductReviews,
-        getCartTotal,
-        fetchProducts,
-        fetchCart,
-        fetchWishlist,
-        loading,
-        processCheckout,
-        uploadPaymentProof,
-        calculateCheckout,
-        TAX_RATE,
-        SHIPPING_FEE,
-        fetchHeroImages,
-        apiAvailable,
-      }}
-    >
-      {children}
-    </ShopContext.Provider>
-  );
-};
+  useEffect(() => {
+    fetchProducts();
+  }, [user]);
 
+return (
+  <ShopContext.Provider
+    value={{
+      products,
+      cartItems,
+      wishlistItems,
+      currency,
+      addToCart,
+      removeFromCart,
+      updateCart,
+      toggleWishlistItem,
+      removeFromWishlist,
+      isInWishlist,
+      getCartCount,
+      getWishlistCount,
+      getProductReviews,
+      getCartTotal,
+      fetchProducts,
+      fetchCart,
+      fetchWishlist,
+      loading,
+      processCheckout,         // ADD THIS
+      uploadPaymentProof,      // ADD THIS
+      calculateCheckout,       // ADD THIS (if different from calculateCheckoutTotals)
+      TAX_RATE,
+      SHIPPING_FEE,
+      fetchHeroImages,
+    }}
+  >
+    {children}
+  </ShopContext.Provider>
+);
+};
 export default ShopContextProvider;
