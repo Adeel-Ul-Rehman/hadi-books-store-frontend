@@ -14,9 +14,8 @@ const ShopContextProvider = ({ children }) => {
   const [wishlistItems, setWishlistItems] = useState([]);
   const [currency] = useState('Rs.');
   const [loading, setLoading] = useState(false);
-  const [fetchError, setFetchError] = useState(null); // New state for product fetch errors
 
-  // Initialize from localStorage for non-auth users, or fetch for auth users (original logic)
+  // Initialize from localStorage for non-auth users, or fetch for auth users
   useEffect(() => {
     if (!user) {
       const localWishlist = JSON.parse(localStorage.getItem('localWishlist') || '[]');
@@ -30,14 +29,8 @@ const ShopContextProvider = ({ children }) => {
     }
   }, [user]);
 
-  // Fetch products once on mount (empty dependency to avoid loops)
-  useEffect(() => {
-    fetchProducts();
-  }, []); // Runs only once, independent of user changes
-
   const fetchProducts = async (category = '', search = '', bestseller = false) => {
     setLoading(true);
-    setFetchError(null); // Clear previous errors
     try {
       const params = new URLSearchParams();
       if (category) params.append('category', category);
@@ -54,22 +47,11 @@ const ShopContextProvider = ({ children }) => {
         }));
         setProducts(productsWithSubCategories || []);
       } else {
-        // For non-success responses (e.g., empty data), keep previous products or set empty
-        if (data.products && data.products.length === 0) {
-          setProducts([]); // Only clear if explicitly empty from server
-        }
-        // Otherwise, keep previous state
+        setProducts([]);
       }
     } catch (error) {
-      // On error (e.g., network/CORS), log but DON'T clear products state
       console.error('Fetch Products Error:', error);
-      setFetchError('Failed to load products. Please check your connection and refresh.');
-      // Optional: Retry once after 2 seconds
-      setTimeout(() => {
-        if (fetchError) {
-          fetchProducts(category, search, bestseller); // Retry with same params
-        }
-      }, 2000);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -331,12 +313,6 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
-  // Expose fetchError for UI components to display (e.g., "Retry" button in LatestCollection)
-  const retryFetchProducts = () => {
-    setFetchError(null);
-    fetchProducts();
-  };
-
   const uploadPaymentProof = async (orderId, file) => {
     setLoading(true);
     if (!orderId || !file) {
@@ -411,6 +387,10 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+    fetchProducts();
+  }, [user]);
+
   return (
     <ShopContext.Provider
       value={{
@@ -432,8 +412,6 @@ const ShopContextProvider = ({ children }) => {
         fetchCart,
         fetchWishlist,
         loading,
-        fetchError, // Expose for UI
-        retryFetchProducts, // Expose retry function
         processCheckout,
         uploadPaymentProof,
         calculateCheckout,

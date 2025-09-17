@@ -14,41 +14,42 @@ const AppContextProvider = ({ children }) => {
 
   // Configure Axios default settings
   useEffect(() => {
-    axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+     axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
     axios.defaults.withCredentials = true;
   }, []);
-  
-const apiRequest = async (method, url, body = null, options = {}) => {
-  try {
-    const headers = {
-      ...options.headers,
-    };
 
-    // ❌ Don’t attach a broken token for guests
-    if (user?.token) {
-      headers['Authorization'] = `Bearer ${user.token}`;
+  const apiRequest = async (method, url, data = null, config = {}) => {
+    console.log("In apiRequest-Shayan")
+    setError(null);
+    try {
+      const response = await axios({
+        method,
+        url: `${url}`,
+        data,
+        ...config,
+      });
+      console.log("Shayan response data is",response,data)
+      return response.data;
+    } catch (err) {
+      const message = err.response?.data?.message || "An unexpected error occurred";
+      
+      // Only show error toast for non-401 errors
+      if (err.response?.status !== 401) {
+        setError(message);
+      }
+
+      // Auto-logout only on 401 errors when user was previously logged in
+      if (err.response?.status === 401 && user) {
+        setUser(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("localCart");
+        localStorage.removeItem("localWishlist");
+        toast.error("Session expired. Please login again.");
+      }
+
+      throw err;
     }
-
-    // Default content-type only if body is not FormData
-    if (!(body instanceof FormData) && !headers['Content-Type']) {
-      headers['Content-Type'] = 'application/json';
-    }
-
-    const response = await axios({
-      method,
-      url,
-      data: body,
-      headers,
-      withCredentials: true,  // ✅ send cookies (important if you rely on cookie auth)
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error("API Request Error:", error.response?.data || error.message);
-    throw error;
-  }
-};
-
+  };
 
   const isAuthenticated = async () => {
     setIsLoading(true);
@@ -474,7 +475,7 @@ const apiRequest = async (method, url, body = null, options = {}) => {
     try {
       const data = await apiRequest(
         "post",
-        "/api/checkout/upload-proof", // Fixed path to include /api
+        "/checkout/upload-proof",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
