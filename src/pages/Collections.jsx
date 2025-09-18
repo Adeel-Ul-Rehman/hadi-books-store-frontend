@@ -201,7 +201,7 @@ const Collections = () => {
         result.sort((a, b) => a.price - b.price);
         break;
       case "price-high":
-        result.sort((a, b) => b.price - a.price);
+        result.sort((a, b) => b.price - b.price);
         break;
       case "newest":
         result.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -246,8 +246,11 @@ const Collections = () => {
     setPaginatedProducts(currentProducts);
   }, [filteredProducts, currentPage, productsPerPage]);
 
-  // Change page
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  // Change page and scroll to top
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // Get page numbers for pagination
   const pageNumbers = [];
