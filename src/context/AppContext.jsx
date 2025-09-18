@@ -27,11 +27,10 @@ const AppContextProvider = ({ children }) => {
   // On mount, if user exists in localStorage, verify session with backend
   useEffect(() => {
     const stored = localStorage.getItem("user");
-    if (stored && !user) {
-      setUser(JSON.parse(stored));
+    if (stored) {
+      // Always verify with backend and set user only if valid
+      isAuthenticated();
     }
-    // Optionally, you can call isAuthenticated() here to verify session
-    // isAuthenticated();
   }, []);
 
   const apiRequest = async (method, url, data = null, config = {}) => {
