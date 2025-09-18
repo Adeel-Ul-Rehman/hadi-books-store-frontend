@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
+import { assets } from "../assets/assets";
 import ProductItems from "../components/ProductItems";
 import Title from "../components/Title";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { FiBook, FiFilter, FiX, FiChevronDown } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 const Collections = () => {
   const { products, currency } = useContext(ShopContext);
@@ -231,25 +233,32 @@ const Collections = () => {
 
   const toggleFilter = (filterType, value) => {
     setActiveFilters((prev) => {
+      let updated;
       if (prev[filterType].includes(value)) {
-        return {
+        updated = {
           ...prev,
           [filterType]: prev[filterType].filter((item) => item !== value),
         };
       } else {
-        return {
+        updated = {
           ...prev,
           [filterType]: [...prev[filterType], value],
         };
       }
+      toast.success("Filter applied!", { autoClose: 1200, position: "top-center" });
+      return updated;
     });
   };
 
   const toggleSingleFilter = (filterType, value) => {
-    setActiveFilters((prev) => ({
-      ...prev,
-      [filterType]: prev[filterType] === value ? null : value,
-    }));
+    setActiveFilters((prev) => {
+      const updated = {
+        ...prev,
+        [filterType]: prev[filterType] === value ? null : value,
+      };
+      toast.success("Filter applied!", { autoClose: 1200, position: "top-center" });
+      return updated;
+    });
   };
 
   const handlePriceChange = (e, index) => {
@@ -257,6 +266,7 @@ const Collections = () => {
     setActiveFilters((prev) => {
       const newRange = [...prev.priceRange];
       newRange[index] = value;
+      toast.success("Filter applied!", { autoClose: 1200, position: "top-center" });
       return {
         ...prev,
         priceRange: newRange,
@@ -294,10 +304,14 @@ const Collections = () => {
   };
 
   const handleSubCategoryClick = (subCategory) => {
-    setActiveFilters((prev) => ({
-      ...prev,
-      subCategory: [subCategory],
-    }));
+    setActiveFilters((prev) => {
+      const updated = {
+        ...prev,
+        subCategory: [subCategory],
+      };
+      toast.success("Filter applied!", { autoClose: 1200, position: "top-center" });
+      return updated;
+    });
     setHoveredCategory(null);
     setMobileCategoryOpen(null);
     setMobileSectionOpen((prev) => ({ ...prev, subcategories: false }));
@@ -787,363 +801,293 @@ const Collections = () => {
           </div>
 
           {/* Mobile filters panel */}
-          {mobileFiltersOpen && (
-            <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-50 overflow-y-auto"
-            >
-              <div
-                className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
-                onClick={() => setMobileFiltersOpen(false)}
-              ></div>
-              <div className="fixed inset-y-0 left-0 max-w-xs w-full bg-white rounded-2xl shadow-xl overflow-y-auto transform transition-all duration-300 ease-in-out">
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-gray-800">
-                      Filters
-                    </h2>
+          <AnimatePresence>
+            {mobileFiltersOpen && (
+              <>
+                {/* Overlay with blur effect */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+                  onClick={() => setMobileFiltersOpen(false)}
+                />
+
+                {/* Sliding Panel */}
+                <motion.div
+                  initial={{ x: "-100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "-100%" }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                    mass: 0.8,
+                  }}
+                  className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-gradient-to-b from-white to-gray-50 shadow-2xl z-50 flex flex-col"
+                >
+                  {/* Header with Close Button */}
+                  <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-white">
+                    <div className="flex items-center">
+                      <img
+                        src="/logo.png"
+                        alt="Hadi Books Store"
+                        className="w-10 h-10 mr-3"
+                      />
+                      <h3 className="text-xl font-bold text-gray-800">Filters</h3>
+                    </div>
                     <button
-                      type="button"
-                      className="-mr-2 w-10 h-10 bg-white p-2 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00308F]"
                       onClick={() => setMobileFiltersOpen(false)}
+                      className="p-2 rounded-full hover:bg-gray-100 transition duration-200"
+                      aria-label="Close filters"
                     >
-                      <span className="sr-only">Close menu</span>
-                      <FiX className="h-6 w-6" />
+                      <FiX className="w-6 h-6 text-gray-600" />
                     </button>
                   </div>
 
-                  <div className="space-y-4">
-                    {/* Categories */}
-                    <div>
-                      <button
-                        onClick={() => toggleMobileSection("categories")}
-                        className="flex items-center justify-between w-full px-3 py-2 text-lg font-semibold text-gray-800"
-                      >
-                        <span>Categories</span>
-                        <FiChevronDown
-                          className={`h-5 w-5 transition-transform duration-200 ${
-                            mobileSectionOpen.categories ? "rotate-180" : ""
-                          }`}
-                        />
-                      </button>
-                      {mobileSectionOpen.categories && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="ml-4 mt-2 space-y-2"
-                        >
-                          {fixedCategories.map((category) => (
-                            <div key={category}>
-                              <button
-                                onClick={() => toggleMobileCategory(category)}
-                                className={`flex items-center w-full text-left px-3 py-2 rounded-lg transition-colors duration-300 text-sm ${
-                                  activeFilters.category.includes(category)
-                                    ? "bg-red-50 text-red-700 font-semibold"
-                                    : "hover:bg-gray-50 text-gray-700"
-                                }`}
-                              >
-                                <span className="capitalize truncate">
-                                  {category}
-                                </span>
-                                <span className="ml-auto text-xs bg-gray-100 px-2 py-0.5 rounded-full">
-                                  {category === "Used & Affordable"
-                                    ? products.length
-                                    : products.filter(
-                                        (p) => p.category === category
-                                      ).length}
-                                </span>
-                              </button>
-                              {mobileCategoryOpen === category &&
-                                subCategoriesByCategory[category].length >
-                                  0 && (
-                                  <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: "auto", opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="ml-4 mt-2 space-y-1"
-                                  >
-                                    {subCategoriesByCategory[category].map(
-                                      (subCat) => (
-                                        <button
-                                          key={subCat}
-                                          onClick={() =>
-                                            handleSubCategoryClick(subCat)
-                                          }
-                                          className={`block w-full text-left px-3 py-1 text-sm transition-colors duration-300 ${
-                                            activeFilters.subCategory.includes(
-                                              subCat
-                                            )
-                                              ? "text-red-700 font-semibold"
-                                              : "text-gray-600 hover:text-gray-800"
-                                          }`}
-                                        >
-                                          {subCat}
-                                        </button>
-                                      )
-                                    )}
-                                  </motion.div>
-                                )}
-                            </div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </div>
-
-                    {/* Price Range */}
-                    <div>
-                      <button
-                        onClick={() => toggleMobileSection("price")}
-                        className="flex items-center justify-between w-full px-3 py-2 text-lg font-semibold text-gray-800"
-                      >
-                        <span>Price Range</span>
-                        <FiChevronDown
-                          className={`h-5 w-5 transition-transform duration-200 ${
-                            mobileSectionOpen.price ? "rotate-180" : ""
-                          }`}
-                        />
-                      </button>
-                      {mobileSectionOpen.price && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="ml-4 mt-2"
-                        >
-                          <div className="mb-4 px-2">
-                            <div className="flex justify-between text-sm text-gray-600 mb-3">
-                              <span>
-                                {currency}
-                                {activeFilters.priceRange[0]}
+                  {/* Scrollable Content */}
+                  <div className="flex-1 overflow-y-auto p-6">
+                    <div className="space-y-3">
+                      {/* Categories */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                          Categories
+                        </h4>
+                        {fixedCategories.map((category) => (
+                          <div key={category} className="mb-2">
+                            <button
+                              onClick={() => toggleMobileCategory(category)}
+                              className={`flex items-center w-full px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+                                activeFilters.category.includes(category)
+                                  ? "bg-gradient-to-r from-red-50 to-orange-50 text-red-600 shadow-sm border border-red-100"
+                                  : "text-gray-700 hover:bg-gray-50"
+                              }`}
+                            >
+                              <span className="capitalize truncate flex-1 text-left">
+                                {category}
                               </span>
-                              <span>
-                                {currency}
-                                {activeFilters.priceRange[1]}
+                              <span className="ml-auto text-xs bg-gray-100 px-2 py-0.5 rounded-full">
+                                {category === "Used & Affordable"
+                                  ? products.length
+                                  : products.filter((p) => p.category === category)
+                                      .length}
                               </span>
-                            </div>
-                            <input
-                              type="range"
-                              min={minPrice}
-                              max={maxPrice}
-                              value={activeFilters.priceRange[0]}
-                              onChange={(e) => handlePriceChange(e, 0)}
-                              className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#00308F]"
-                            />
-                            <input
-                              type="range"
-                              min={minPrice}
-                              max={maxPrice}
-                              value={activeFilters.priceRange[1]}
-                              onChange={(e) => handlePriceChange(e, 1)}
-                              className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#00308F] mt-3"
-                            />
+                            </button>
+                            {mobileCategoryOpen === category &&
+                              subCategoriesByCategory[category].length > 0 && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="ml-4 mt-2 space-y-1"
+                                >
+                                  {subCategoriesByCategory[category].map(
+                                    (subCat) => (
+                                      <button
+                                        key={subCat}
+                                        onClick={() =>
+                                          handleSubCategoryClick(subCat)
+                                        }
+                                        className={`block w-full text-left px-3 py-1 text-sm transition-colors duration-200 ${
+                                          activeFilters.subCategory.includes(subCat)
+                                            ? "text-red-700 font-semibold"
+                                            : "text-gray-600 hover:text-gray-800"
+                                        }`}
+                                      >
+                                        {subCat}
+                                      </button>
+                                    )
+                                  )}
+                                </motion.div>
+                              )}
                           </div>
-                        </motion.div>
-                      )}
-                    </div>
+                        ))}
+                      </div>
 
-                    {/* Rating */}
-                    <div>
-                      <button
-                        onClick={() => toggleMobileSection("rating")}
-                        className="flex items-center justify-between w-full px-3 py-2 text-lg font-semibold text-gray-800"
-                      >
-                        <span>Rating</span>
-                        <FiChevronDown
-                          className={`h-5 w-5 transition-transform duration-200 ${
-                            mobileSectionOpen.rating ? "rotate-180" : ""
-                          }`}
-                        />
-                      </button>
-                      {mobileSectionOpen.rating && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="ml-4 mt-2 space-y-2"
-                        >
-                          {Array.from({ length: 5 }, (_, i) => 5 - i).map(
-                            (rating) => (
-                              <button
-                                key={rating}
-                                onClick={() =>
-                                  toggleSingleFilter("rating", rating)
+                      {/* Price Range */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                          Price Range
+                        </h4>
+                        <div className="mb-4 px-2">
+                          <div className="flex justify-between text-sm text-gray-600 mb-3">
+                            <span>
+                              {currency}
+                              {activeFilters.priceRange[0]}
+                            </span>
+                            <span>
+                              {currency}
+                              {activeFilters.priceRange[1]}
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={minPrice}
+                            max={maxPrice}
+                            value={activeFilters.priceRange[0]}
+                            onChange={(e) => handlePriceChange(e, 0)}
+                            className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#00308F]"
+                          />
+                          <input
+                            type="range"
+                            min={minPrice}
+                            max={maxPrice}
+                            value={activeFilters.priceRange[1]}
+                            onChange={(e) => handlePriceChange(e, 1)}
+                            className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#00308F] mt-3"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Rating */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                          Rating
+                        </h4>
+                        {Array.from({ length: 5 }, (_, i) => 5 - i).map(
+                          (rating) => (
+                            <button
+                              key={rating}
+                              onClick={() => toggleSingleFilter("rating", rating)}
+                              className={`flex items-center w-full px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+                                activeFilters.rating === rating
+                                  ? "bg-gradient-to-r from-red-50 to-orange-50 text-red-600 shadow-sm border border-red-100"
+                                  : "text-gray-700 hover:bg-gray-50"
+                              }`}
+                            >
+                              <div className="flex items-center flex-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <svg
+                                    key={i}
+                                    className={`w-4 h-4 ${
+                                      i < rating
+                                        ? "text-yellow-400"
+                                        : "text-gray-300"
+                                    }`}
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                  </svg>
+                                ))}
+                                <span className="ml-1 text-sm">& Up</span>
+                              </div>
+                              <span className="ml-auto text-xs bg-gray-100 px-2 py-0.5 rounded-full">
+                                {
+                                  products.filter((p) => (p.rating || 0) >= rating)
+                                    .length
                                 }
-                                className={`flex items-center w-full text-left px-3 py-2 rounded-lg transition-colors duration-300 text-sm ${
-                                  activeFilters.rating === rating
-                                    ? "bg-red-50 text-red-700 font-semibold"
-                                    : "hover:bg-gray-50 text-gray-700"
-                                }`}
-                              >
-                                <div className="flex items-center">
-                                  {[...Array(5)].map((_, i) => (
-                                    <svg
-                                      key={i}
-                                      className={`w-4 h-4 ${
-                                        i < rating
-                                          ? "text-yellow-400"
-                                          : "text-gray-300"
-                                      }`}
-                                      fill="currentColor"
-                                      viewBox="0 0 20 20"
-                                    >
-                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                  ))}
-                                  <span className="ml-1 text-sm">& Up</span>
-                                </div>
-                                <span className="ml-auto text-xs bg-gray-100 px-2 py-0.5 rounded-full">
-                                  {
-                                    products.filter(
-                                      (p) => (p.rating || 0) >= rating
-                                    ).length
-                                  }
-                                </span>
-                              </button>
-                            )
-                          )}
-                        </motion.div>
-                      )}
-                    </div>
+                              </span>
+                            </button>
+                          )
+                        )}
+                      </div>
 
-                    {/* Subcategories */}
-                    <div>
-                      <button
-                        onClick={() => toggleMobileSection("subcategories")}
-                        className="flex items-center justify-between w-full px-3 py-2 text-lg font-semibold text-gray-800"
-                      >
-                        <span>Subcategories</span>
-                        <FiChevronDown
-                          className={`h-5 w-5 transition-transform duration-200 ${
-                            mobileSectionOpen.subcategories ? "rotate-180" : ""
+                      {/* Subcategories */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                          Subcategories
+                        </h4>
+                        {uniqueSubCategories.length > 0 ? (
+                          uniqueSubCategories.map((subCat) => (
+                            <button
+                              key={subCat}
+                              onClick={() => handleSubCategoryClick(subCat)}
+                              className={`flex items-center w-full px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+                                activeFilters.subCategory.includes(subCat)
+                                  ? "bg-gradient-to-r from-red-50 to-orange-50 text-red-600 shadow-sm border border-red-100"
+                                  : "text-gray-700 hover:bg-gray-50"
+                              }`}
+                            >
+                              <span className="truncate flex-1 text-left">
+                                {subCat}
+                              </span>
+                              <span className="ml-auto text-xs bg-gray-100 px-2 py-0.5 rounded-full">
+                                {
+                                  products.filter(
+                                    (p) =>
+                                      p.subCategories &&
+                                      p.subCategories.some(
+                                        (sub) => cleanSubCategory(sub) === subCat
+                                      )
+                                  ).length
+                                }
+                              </span>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="text-sm text-gray-500 py-2">
+                            No subcategories available
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Availability */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                          Availability
+                        </h4>
+                        <button
+                          onClick={() => toggleSingleFilter("availability", "all")}
+                          className={`flex items-center w-full px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+                            activeFilters.availability === "all"
+                              ? "bg-gradient-to-r from-red-50 to-orange-50 text-red-600 shadow-sm border border-red-100"
+                              : "text-gray-700 hover:bg-gray-50"
                           }`}
-                        />
-                      </button>
-                      {mobileSectionOpen.subcategories && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="ml-4 mt-2 space-y-2"
                         >
-                          {uniqueSubCategories.length > 0 ? (
-                            uniqueSubCategories.map((subCat) => (
-                              <button
-                                key={subCat}
-                                onClick={() => handleSubCategoryClick(subCat)}
-                                className={`flex items-center w-full text-left px-3 py-2 rounded-lg transition-colors duration-300 text-sm ${
-                                  activeFilters.subCategory.includes(subCat)
-                                    ? "bg-red-50 text-red-700 font-semibold"
-                                    : "hover:bg-gray-50 text-gray-700"
-                                }`}
-                              >
-                                <span className="truncate">{subCat}</span>
-                                <span className="ml-auto text-xs bg-gray-100 px-2 py-0.5 rounded-full">
-                                  {
-                                    products.filter(
-                                      (p) =>
-                                        p.subCategories &&
-                                        p.subCategories.some(
-                                          (sub) =>
-                                            cleanSubCategory(sub) === subCat
-                                        )
-                                    ).length
-                                  }
-                                </span>
-                              </button>
-                            ))
-                          ) : (
-                            <div className="text-sm text-gray-500 py-2">
-                              No subcategories available
-                            </div>
-                          )}
-                        </motion.div>
-                      )}
-                    </div>
-
-                    {/* Availability */}
-                    <div>
-                      <button
-                        onClick={() => toggleMobileSection("availability")}
-                        className="flex items-center justify-between w-full px-3 py-2 text-lg font-semibold text-gray-800"
-                      >
-                        <span>Availability</span>
-                        <FiChevronDown
-                          className={`h-5 w-5 transition-transform duration-200 ${
-                            mobileSectionOpen.availability ? "rotate-180" : ""
+                          <span className="text-sm flex-1 text-left">All Books</span>
+                        </button>
+                        <button
+                          onClick={() =>
+                            toggleSingleFilter("availability", "in-stock")
+                          }
+                          className={`flex items-center w-full px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+                            activeFilters.availability === "in-stock"
+                              ? "bg-gradient-to-r from-red-50 to-orange-50 text-red-600 shadow-sm border border-red-100"
+                              : "text-gray-700 hover:bg-gray-50"
                           }`}
-                        />
-                      </button>
-                      {mobileSectionOpen.availability && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="ml-4 mt-2 space-y-2"
                         >
-                          <button
-                            onClick={() =>
-                              toggleSingleFilter("availability", "all")
-                            }
-                            className={`flex items-center w-full text-left px-3 py-2 rounded-lg transition-colors duration-300 text-sm ${
-                              activeFilters.availability === "all"
-                                ? "bg-red-50 text-red-700 font-semibold"
-                                : "hover:bg-gray-50 text-gray-700"
-                            }`}
-                          >
-                            <span className="text-sm">All Books</span>
-                          </button>
-                          <button
-                            onClick={() =>
-                              toggleSingleFilter("availability", "in-stock")
-                            }
-                            className={`flex items-center w-full text-left px-3 py-2 rounded-lg transition-colors duration-300 text-sm ${
-                              activeFilters.availability === "in-stock"
-                                ? "bg-red-50 text-red-700 font-semibold"
-                                : "hover:bg-gray-50 text-gray-700"
-                            }`}
-                          >
-                            <span className="text-sm">In Stock</span>
-                          </button>
-                          <button
-                            onClick={() =>
-                              toggleSingleFilter("availability", "bestseller")
-                            }
-                            className={`flex items-center w-full text-left px-3 py-2 rounded-lg transition-colors duration-300 text-sm ${
-                              activeFilters.availability === "bestseller"
-                                ? "bg-red-50 text-red-700 font-semibold"
-                                : "hover:bg-gray-50 text-gray-700"
-                            }`}
-                          >
-                            <span className="text-sm">Bestsellers</span>
-                          </button>
-                        </motion.div>
-                      )}
-                    </div>
-
-                    {/* Apply filters button */}
-                    <div className="sticky bottom-0 bg-white pt-4 pb-6">
-                      <button
-                        onClick={() => setMobileFiltersOpen(false)}
-                        className="w-full py-3 px-4 border border-transparent rounded-2xl shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-red-400 to-orange-500 hover:from-red-500 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-[#00308F] transition-all duration-300"
-                      >
-                        Apply Filters
-                      </button>
+                          <span className="text-sm flex-1 text-left">In Stock</span>
+                        </button>
+                        <button
+                          onClick={() =>
+                            toggleSingleFilter("availability", "bestseller")
+                          }
+                          className={`flex items-center w-full px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+                            activeFilters.availability === "bestseller"
+                              ? "bg-gradient-to-r from-red-50 to-orange-50 text-red-600 shadow-sm border border-red-100"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          <span className="text-sm flex-1 text-left">Bestsellers</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
+
+                  {/* Footer with WhatsApp */}
+                  <div className="p-6 border-t border-gray-200 bg-white">
+                    <a
+                      href="https://wa.me/923090005634"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center w-full bg-green-500 text-white py-3 px-4 rounded-xl hover:bg-green-600 transition duration-200 font-medium"
+                      onClick={() => setMobileFiltersOpen(false)}
+                    >
+                      <img
+                        src={assets.whatsapp_icon}
+                        alt="WhatsApp"
+                        className="w-5 h-5 mr-2"
+                      />
+                      Contact via WhatsApp
+                    </a>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
 
           {/* Product grid */}
           <div className="lg:col-span-5">

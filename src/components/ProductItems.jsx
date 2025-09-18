@@ -87,7 +87,7 @@ const ProductItems = ({
         {bestseller && (
           <span className="absolute top-2 left-2 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-lg">
             Bestseller
-          </span> 
+          </span>
         )}
 
         <button
@@ -107,17 +107,17 @@ const ProductItems = ({
 
       <div className="p-3 sm:p-4 flex flex-col h-auto">
         <p className="text-xs text-gray-500 capitalize truncate">{category}</p>
-        <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 mt-1 min-h-[2.5rem]">
+        <h3 className="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-1 overflow-hidden text-ellipsis max-w-full mt-1">
           {name}
         </h3>
 
         {/* Price display with original price if available */}
-        <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
-          <p className="text-sm font-semibold text-[#00308F] whitespace-nowrap">
+        <div className="flex items-center space-x-1 mt-1 shrink-0 max-w-full overflow-hidden">
+          <p className="text-xs font-semibold text-[#00308F] whitespace-nowrap">
             {`${currency}${price.toFixed(2)}`}
           </p>
           {originalPrice && originalPrice > price && (
-            <p className="text-xs sm:text-sm text-gray-500 line-through whitespace-nowrap">
+            <p className="text-xs text-gray-500 line-through whitespace-nowrap">
               {`${currency}${originalPrice.toFixed(2)}`}
             </p>
           )}

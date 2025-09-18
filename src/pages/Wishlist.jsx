@@ -86,7 +86,7 @@ const Wishlist = () => {
         )}
 
         {!loading && getWishlistCount() > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
             <AnimatePresence>
               {wishlistProducts.map((product) => (
                 <motion.div
@@ -94,18 +94,18 @@ const Wishlist = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -50 }}
-                  className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:scale-105"
+                  className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:scale-105 min-h-[220px] sm:min-h-[260px] w-full flex flex-col"
                 >
-                  <div className="relative">
+                  <div className="relative w-full h-40 sm:h-56">
                     <img
-                      className="w-full h-48 sm:h-56 object-cover rounded-t-2xl"
+                      className="w-full h-full object-cover rounded-t-2xl"
                       src={product.image || 'https://placehold.co/300x300?text=Book+Image'}
                       alt={product.name}
                       onError={(e) => { e.target.src = 'https://placehold.co/300x300?text=Book+Image'; e.target.onerror = null; }}
                       loading="lazy"
                     />
                     {product.bestseller && (
-                      <span className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                      <span className="absolute top-2 left-2 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-lg">
                         Bestseller
                       </span>
                     )}
@@ -117,15 +117,15 @@ const Wishlist = () => {
                       <FiHeart className="w-4 h-4" />
                     </button>
                   </div>
-                  <div className="p-4 flex flex-col h-auto">
-                    <p className="text-xs text-gray-500 capitalize truncate">{product.category}</p>
-                    <h3 className="text-base font-semibold text-gray-800 truncate mt-1">{product.name}</h3>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <p className="text-sm font-semibold text-[#00308F]">
+                  <div className="flex-1 flex flex-col p-3 sm:p-4">
+                    <p className="text-xs text-gray-500 capitalize line-clamp-1 overflow-hidden text-ellipsis max-w-full">{product.category}</p>
+                    <h3 className="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-1 overflow-hidden text-ellipsis max-w-full mt-1">{product.name}</h3>
+                    <div className="flex items-center space-x-1 mt-1 shrink-0 max-w-full overflow-hidden">
+                      <p className="text-xs font-semibold text-[#00308F] whitespace-nowrap">
                         {currency}{product.price.toFixed(2)}
                       </p>
                       {product.originalPrice && (
-                        <p className="text-sm text-gray-600 line-through">
+                        <p className="text-xs text-gray-500 line-through whitespace-nowrap">
                           {currency}{product.originalPrice.toFixed(2)}
                         </p>
                       )}
@@ -133,7 +133,7 @@ const Wishlist = () => {
                     <motion.button
                       onClick={() => handleAddToCart(product.id)}
                       whileTap={{ scale: 0.95 }}
-                      className="w-full mt-3 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-red-400 to-orange-500 hover:from-red-500 hover:to-orange-600 text-white transition-transform duration-300 flex items-center justify-center"
+                      className="w-full mt-3 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-gradient-to-r from-red-400 to-orange-500 hover:from-red-500 hover:to-orange-600 text-white transition-transform duration-300 flex items-center justify-center"
                     >
                       <FiShoppingCart className="w-3 h-3 inline-block mr-1" />
                       <span>Add to Cart</span>

@@ -8,7 +8,7 @@ import validator from "validator";
 import Title from "../components/Title";
 
 const Register = () => {
-  const { register, verifyEmail, sendVerifyOtp } = useContext(AppContext);
+  const { register, verifyEmail, sendVerifyOtp, setUser } = useContext(AppContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
@@ -168,6 +168,14 @@ const Register = () => {
       const data = await verifyEmail(otpString);
       if (data.success) {
         toast.success("Email verified successfully");
+        // Remove any auth tokens or user info to ensure user is logged out
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("user");
+        if (typeof setUser === 'function') setUser(null); // Explicitly log out in context
+        // Optionally, clear cookies if you use them for auth
+        // document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         navigate("/login");
       } else {
         toast.error(data.message || "Invalid OTP");

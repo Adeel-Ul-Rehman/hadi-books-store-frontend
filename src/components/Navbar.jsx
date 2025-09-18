@@ -5,7 +5,7 @@ import { AppContext } from "../context/AppContext";
 import { ShopContext } from "../context/ShopContext";
 import { toast } from "react-toastify";
 import SearchBar from "./SearchBar";
-import { FiHeart } from "react-icons/fi";
+import { FiHeart, FiX, FiMenu, FiUser, FiLogOut, FiShoppingBag, FiHome, FiBook, FiInfo, FiMail } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
@@ -15,7 +15,6 @@ const Navbar = () => {
   const { user, logout } = useContext(AppContext);
   const { getCartCount, getWishlistCount } = useContext(ShopContext);
 
-  // Close profile menu after delay only if not hovering
   const handleProfileMouseLeave = () => {
     if (window.innerWidth > 768) {
       const timer = setTimeout(() => {
@@ -38,31 +37,37 @@ const Navbar = () => {
     }
   };
 
-  // Get user initial for profile placeholder
   const getUserInitial = () => {
     return user?.name ? user.name.charAt(0).toUpperCase() : "U";
   };
+
+  const menuItems = [
+    { path: "/", label: "HOME", icon: <FiHome className="w-5 h-5" /> },
+    { path: "/collections", label: "COLLECTIONS", icon: <FiBook className="w-5 h-5" /> },
+    { path: "/about", label: "ABOUT", icon: <FiInfo className="w-5 h-5" /> },
+    { path: "/contact", label: "CONTACT", icon: <FiMail className="w-5 h-5" /> },
+  ];
 
   return (
     <header className="sticky top-0 z-50 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 shadow-md">
       {/* Main Navbar */}
       <nav className="flex justify-between items-center py-2 px-4 sm:px-6 lg:px-8 h-16">
-        {/* Logo */}
-        <div className="flex items-center">
+        {/* Logo - Move slightly more left on mobile */}
+        <div className="flex items-center ml-0 sm:ml-0 md:-ml-0">
           <img
             src="/logo.png"
             onClick={() => navigate("/")}
             alt="Hadi Books Store Logo"
-            className="w-24 h-24 -mt-4 cursor-pointer hover:scale-105 transition-transform duration-300"
+            className="w-24 h-24 -mt-4 cursor-pointer hover:scale-105 transition-transform duration-300 ml-[-10px] md:ml-0"
           />
         </div>
 
         {/* Desktop Nav Links */}
         <div className="hidden md:flex items-center gap-6 absolute left-1/2 transform -translate-x-1/2">
-          {["/", "/collections", "/about", "/contact"].map((path, index) => (
+          {menuItems.map((item, index) => (
             <NavLink
-              key={path}
-              to={path}
+              key={item.path}
+              to={item.path}
               className={({ isActive }) =>
                 `text-base font-semibold transition-colors duration-300 ${
                   isActive
@@ -71,15 +76,15 @@ const Navbar = () => {
                       ["sky-600", "orange-600", "red-600", "blue-600"][index]
                 }`
               }
-              aria-label={["Home", "Collections", "About", "Contact"][index]}
+              aria-label={item.label}
             >
-              {["HOME", "COLLECTIONS", "ABOUT", "CONTACT"][index]}
+              {item.label}
             </NavLink>
           ))}
         </div>
 
-        {/* Right Icons - Updated order: Search, Wishlist, Cart, Profile */}
-        <div className="flex items-center gap-4">
+  {/* Right Icons - reduce gap */}
+  <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           {/* Search */}
           <SearchBar isNavbar={true} />
 
@@ -143,11 +148,7 @@ const Navbar = () => {
                   </div>
                 )
               ) : (
-                <img
-                  src={assets.profile_icon}
-                  alt="Profile"
-                  className="w-6 h-6"
-                />
+                <FiUser className="w-6 h-6 text-gray-800" />
               )}
             </button>
             <AnimatePresence>
@@ -165,31 +166,34 @@ const Navbar = () => {
                     <>
                       <NavLink
                         to="/account"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         onClick={() => {
                           setShowProfileMenu(false);
                           setMobileMenuOpen(false);
                         }}
                         aria-label="My Account"
                       >
+                        <FiUser className="w-4 h-4 mr-2" />
                         My Account
                       </NavLink>
                       <NavLink
                         to="/orders"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         onClick={() => {
                           setShowProfileMenu(false);
                           setMobileMenuOpen(false);
                         }}
                         aria-label="My Orders"
                       >
+                        <FiShoppingBag className="w-4 h-4 mr-2" />
                         My Orders
                       </NavLink>
                       <button
                         onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         aria-label="Logout"
                       >
+                        <FiLogOut className="w-4 h-4 mr-2" />
                         Logout
                       </button>
                     </>
@@ -197,24 +201,26 @@ const Navbar = () => {
                     <>
                       <NavLink
                         to="/login"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         onClick={() => {
                           setShowProfileMenu(false);
                           setMobileMenuOpen(false);
                         }}
                         aria-label="Login"
                       >
+                        <FiUser className="w-4 h-4 mr-2" />
                         Login
                       </NavLink>
                       <NavLink
                         to="/register"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         onClick={() => {
                           setShowProfileMenu(false);
                           setMobileMenuOpen(false);
                         }}
                         aria-label="Register"
                       >
+                        <FiUser className="w-4 h-4 mr-2" />
                         Register
                       </NavLink>
                     </>
@@ -226,32 +232,26 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden flex items-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="md:hidden flex items-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 p-1"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Toggle mobile menu"
           >
-            <img src={assets.menu_icon} alt="Menu" className="w-6 h-6" />
+            <FiMenu className="w-6 h-6 text-gray-800" />
           </button>
         </div>
       </nav>
 
-      {/* Mobile Menu */}
+      {/* Enhanced Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", stiffness: 80, damping: 20 }}
-            className="fixed inset-0 z-50 md:hidden"
-          >
-            {/* Overlay */}
+          <>
+            {/* Overlay with blur effect */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
               onClick={() => setMobileMenuOpen(false)}
             />
 
@@ -260,96 +260,128 @@ const Navbar = () => {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 100, damping: 18 }}
-              className="absolute right-0 top-0 h-full w-72 bg-gradient-to-b from-sky-50 via-orange-50 to-red-50 shadow-2xl rounded-l-2xl flex flex-col"
+              transition={{ 
+                type: "spring", 
+                stiffness: 300, 
+                damping: 30,
+                mass: 0.8
+              }}
+              className="fixed right-0 top-0 h-full w-80 max-w-[85vw] bg-gradient-to-b from-white to-gray-50 shadow-2xl z-50 flex flex-col"
             >
-              {/* Header with Close */}
-              <div className="flex justify-between items-center p-4 border-b border-gray-200">
-                <h3 className="text-lg font-bold text-gray-800">Menu</h3>
+              {/* Header with Close Button */}
+              <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-white">
+                <div className="flex items-center">
+                  <img
+                    src="/logo.png"
+                    alt="Hadi Books Store"
+                    className="w-10 h-10 mr-3"
+                  />
+                  <h3 className="text-xl font-bold text-gray-800">Menu</h3>
+                </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 rounded-full hover:bg-gray-100 transition"
-                  aria-label="Close mobile menu"
+                  className="p-2 rounded-full hover:bg-gray-100 transition duration-200"
+                  aria-label="Close menu"
                 >
-                  <img
-                    src={assets.dropdown_icon}
-                    alt="Close"
-                    className="w-5 h-5 rotate-180"
-                  />
+                  <FiX className="w-6 h-6 text-gray-600" />
                 </button>
               </div>
 
-              {/* Scrollable Links */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                {["/", "/collections", "/about", "/contact"].map(
-                  (path, index) => (
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {/* Navigation Links */}
+                <div className="space-y-3 mb-8">
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                    Navigation
+                  </h4>
+                  {menuItems.map((item, index) => (
                     <NavLink
-                      key={path}
-                      to={path}
+                      key={item.path}
+                      to={item.path}
                       className={({ isActive }) =>
-                        `block w-full text-base font-semibold px-4 py-3 rounded-lg transition-all text-center ${
+                        `flex items-center w-full px-4 py-3 rounded-xl transition-all duration-200 ${
                           isActive
-                            ? "bg-red-100 text-red-600 shadow-sm"
-                            : "text-gray-700 hover:bg-gray-100 hover:text-" +
-                              ["sky-600", "orange-600", "red-600", "blue-600"][
-                                index
-                              ]
+                            ? "bg-gradient-to-r from-red-50 to-orange-50 text-red-600 shadow-sm border border-red-100"
+                            : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                         }`
                       }
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      {["HOME", "COLLECTIONS", "ABOUT", "CONTACT"][index]}
+                      <span className="mr-3 text-red-500">{item.icon}</span>
+                      <span className="font-medium">{item.label}</span>
                     </NavLink>
-                  )
-                )}
+                  ))}
+                </div>
 
-                {/* Auth / Account */}
-                <div className="mt-6 border-t pt-4 space-y-2">
+                {/* User Section */}
+                <div className="space-y-3 border-t pt-6">
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                    Account
+                  </h4>
                   {user ? (
                     <>
                       <NavLink
                         to="/account"
-                        className="block w-full text-base font-semibold px-4 py-3 rounded-lg text-center text-gray-700 hover:bg-gray-100 hover:text-red-600"
+                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        My Account
+                        <FiUser className="w-5 h-5 mr-3 text-blue-500" />
+                        <span className="font-medium">My Account</span>
                       </NavLink>
                       <NavLink
                         to="/orders"
-                        className="block w-full text-base font-semibold px-4 py-3 rounded-lg text-center text-gray-700 hover:bg-gray-100 hover:text-red-600"
+                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        My Orders
+                        <FiShoppingBag className="w-5 h-5 mr-3 text-green-500" />
+                        <span className="font-medium">My Orders</span>
                       </NavLink>
                       <button
                         onClick={handleLogout}
-                        className="block w-full text-base font-semibold px-4 py-3 rounded-lg text-center text-gray-700 hover:bg-gray-100 hover:text-red-600 transition"
+                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition duration-200"
                       >
-                        Logout
+                        <FiLogOut className="w-5 h-5 mr-3 text-red-500" />
+                        <span className="font-medium">Logout</span>
                       </button>
                     </>
                   ) : (
                     <>
                       <NavLink
                         to="/login"
-                        className="block w-full text-base font-semibold px-4 py-3 rounded-lg text-center text-gray-700 hover:bg-gray-100 hover:text-red-600"
+                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Login
+                        <FiUser className="w-5 h-5 mr-3 text-blue-500" />
+                        <span className="font-medium">Login</span>
                       </NavLink>
                       <NavLink
                         to="/register"
-                        className="block w-full text-base font-semibold px-4 py-3 rounded-lg text-center text-gray-700 hover:bg-gray-100 hover:text-red-600"
+                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Register
+                        <FiUser className="w-5 h-5 mr-3 text-green-500" />
+                        <span className="font-medium">Register</span>
                       </NavLink>
                     </>
                   )}
                 </div>
               </div>
+
+              {/* Footer with WhatsApp */}
+              <div className="p-6 border-t border-gray-200 bg-white">
+                <a
+                  href="https://wa.me/923090005634"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center w-full bg-green-500 text-white py-3 px-4 rounded-xl hover:bg-green-600 transition duration-200 font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <img src={assets.whatsapp_icon} alt="WhatsApp" className="w-5 h-5 mr-2" />
+                  Contact via WhatsApp
+                </a>
+              </div>
             </motion.div>
-          </motion.div>
+          </>
         )}
       </AnimatePresence>
 
@@ -358,7 +390,7 @@ const Navbar = () => {
         href="https://wa.me/923090005634"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50"
+        className="fixed bottom-6 right-6 z-40"
         aria-label="Contact via WhatsApp"
       >
         <motion.img

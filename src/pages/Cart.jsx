@@ -144,14 +144,14 @@ const Cart = () => {
       className="min-h-screen py-8 px-4 sm:px-6 font-['Poppins',sans-serif]"
     >
       <div className="max-w-7xl mx-auto">
-        <motion.h1
+        <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-3xl md:text-4xl font-thin mb-12 text-center relative inline-block"
+          className="flex justify-center mb-12"
         >
           <Title text1={"Your"} text2={"Shopping Cart"} />
-        </motion.h1>
+        </motion.div>
 
         {loading && (
           <motion.div
@@ -449,7 +449,7 @@ const Cart = () => {
             <div className="text-2xl mb-3 text-center">
               <Title text1={"You Might"} text2={"Also Like"} />
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
               {products
                 .filter(
                   (item) =>
@@ -461,51 +461,55 @@ const Cart = () => {
                     ? item.image[0]
                     : item.image;
                   return (
-                    <div
+                    <motion.div
                       key={item.id}
-                      className="bg-white shadow-sm border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -50 }}
+                      className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:scale-105 min-h-[220px] sm:min-h-[260px] w-full flex flex-col"
                     >
-                      <div className="h-48 bg-gray-100 overflow-hidden rounded-t-2xl">
+                      <div className="relative w-full h-40 sm:h-56">
                         <img
                           src={
                             imageUrl ||
                             "https://placehold.co/300x300?text=Book+Image"
                           }
                           alt={item.name}
-                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                          className="w-full h-full object-cover rounded-t-2xl"
                           onError={handleImageError}
+                          loading="lazy"
                         />
                       </div>
-                      <div className="p-4">
-                        <h3 className="font-medium text-gray-900 mb-1">
-                          {item.name}
-                        </h3>
-                        <p className="text-gray-600 text-sm mb-2 capitalize">
+                      <div className="flex-1 flex flex-col p-3 sm:p-4">
+                        <p className="text-xs text-gray-500 capitalize line-clamp-1 overflow-hidden text-ellipsis max-w-full">
                           {item.category}
                         </p>
-                        <div className="flex items-center space-x-2">
-                          <p className="font-bold text-gray-900">
-                            {currency}
-                            {item.price.toFixed(2)}
+                        <h3 className="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-1 overflow-hidden text-ellipsis max-w-full mt-1">
+                          {item.name}
+                        </h3>
+                        <div className="flex items-center space-x-1 mt-1 shrink-0 max-w-full overflow-hidden">
+                          <p className="text-xs font-semibold text-[#00308F] whitespace-nowrap">
+                            {currency}{item.price.toFixed(2)}
                           </p>
                           {item.originalPrice && (
-                            <p className="text-sm text-gray-600 line-through">
-                              {currency}
-                              {item.originalPrice.toFixed(2)}
+                            <p className="text-xs text-gray-500 line-through whitespace-nowrap">
+                              {currency}{item.originalPrice.toFixed(2)}
                             </p>
                           )}
                         </div>
-                        <button
+                        <motion.button
                           onClick={() =>
                             handleAddToCart(item.id, item.sizes?.[0] || null, 1)
-                          } // FIXED: Use handleAddToCart instead of addToCart
-                          className="mt-3 w-full py-2 bg-gradient-to-r from-red-400 to-orange-500 hover:from-red-500 hover:to-orange-600 text-white rounded-2xl text-sm font-medium transition-all duration-300"
+                          }
+                          whileTap={{ scale: 0.95 }}
+                          className="w-full mt-3 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-gradient-to-r from-red-400 to-orange-500 hover:from-red-500 hover:to-orange-600 text-white transition-transform duration-300 flex items-center justify-center"
                           disabled={loading}
                         >
-                          Add to Cart
-                        </button>
+                          <FiShoppingCart className="w-3 h-3 inline-block mr-1" />
+                          <span>Add to Cart</span>
+                        </motion.button>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
             </div>
