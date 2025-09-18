@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
@@ -9,23 +9,6 @@ import { FiBook, FiFilter, FiX, FiChevronDown, FiChevronLeft, FiChevronRight } f
 import { toast } from "react-toastify";
 
 const Collections = () => {
-  const productGridRef = useRef(null);
-  // Scroll to product grid on page change
-  useEffect(() => {
-    if (productGridRef.current) {
-      const yOffset = -80; // adjust for sticky header if needed
-      const y = productGridRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: "smooth" });
-    }
-  }, [currentPage]);
-  // Scroll to product grid on page change
-  useEffect(() => {
-    if (productGridRef.current) {
-      const yOffset = -80; // adjust for sticky header if needed
-      const y = productGridRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: "smooth" });
-    }
-  }, [currentPage]);
   const { products, currency } = useContext(ShopContext);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [paginatedProducts, setPaginatedProducts] = useState([]);
@@ -1200,7 +1183,6 @@ const Collections = () => {
             {paginatedProducts.length > 0 ? (
               <>
                 <motion.div
-                  ref={productGridRef}
                   className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -1228,36 +1210,29 @@ const Collections = () => {
 
                 {/* Pagination */}
                 {pageNumbers.length > 1 && (
-                  <div className="mt-8 flex justify-center w-full">
-                    <nav
-                      className="flex flex-wrap justify-center items-center gap-1 sm:gap-2 md:gap-3 w-full"
-                      aria-label="Pagination"
-                    >
+                  <div className="mt-8 flex justify-center">
+                    <nav className="flex items-center space-x-2">
                       <button
                         onClick={() => paginate(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className={`flex items-center px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 shadow-sm border focus:outline-none focus:ring-2 focus:ring-red-400 ${
+                        className={`p-2 rounded-lg border ${
                           currentPage === 1
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                            : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300 hover:text-red-700"
+                            : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
                         }`}
-                        aria-label="Previous Page"
                       >
-                        <FiChevronLeft className="w-4 h-4 mr-0.5" />
-                        <span className="hidden xs:inline">Previous</span>
+                        <FiChevronLeft className="w-5 h-5" />
                       </button>
 
                       {getPageNumbersToShow().map((number) => (
                         <button
                           key={number}
                           onClick={() => paginate(number)}
-                          className={`px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 shadow-sm border focus:outline-none focus:ring-2 focus:ring-red-400 ${
+                          className={`px-3 py-2 rounded-lg border text-sm font-medium ${
                             currentPage === number
-                              ? "bg-red-500 text-white font-semibold border-red-500"
-                              : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300 hover:text-red-700"
+                              ? "bg-red-500 text-white border-red-500"
+                              : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
                           }`}
-                          aria-current={currentPage === number ? "page" : undefined}
-                          aria-label={`Go to page ${number}`}
                         >
                           {number}
                         </button>
@@ -1266,15 +1241,13 @@ const Collections = () => {
                       <button
                         onClick={() => paginate(currentPage + 1)}
                         disabled={currentPage === pageNumbers.length}
-                        className={`flex items-center px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 shadow-sm border focus:outline-none focus:ring-2 focus:ring-red-400 ${
+                        className={`p-2 rounded-lg border ${
                           currentPage === pageNumbers.length
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                            : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300 hover:text-red-700"
+                            : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
                         }`}
-                        aria-label="Next Page"
                       >
-                        <span className="hidden xs:inline">Next</span>
-                        <FiChevronRight className="w-4 h-4 ml-0.5" />
+                        <FiChevronRight className="w-5 h-5" />
                       </button>
                     </nav>
                   </div>
