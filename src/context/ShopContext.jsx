@@ -19,17 +19,17 @@ const ShopContextProvider = ({ children }) => {
   // Initialize from localStorage for non-auth users, or fetch for auth users
   // Always fetch cart/wishlist from server for logged-in user, even if user is restored from localStorage
   useEffect(() => {
-    if (!user) {
+    if (!user || !user.id) {
       const localWishlist = JSON.parse(localStorage.getItem('localWishlist') || '[]');
       const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
       setWishlistItems(localWishlist.map(id => ({ productId: id })));
       setCartItems(localCart);
     } else {
-      // Always fetch from server for logged-in user
+      // Always fetch from server for logged-in user with valid id
       fetchWishlist();
       fetchCart();
     }
-  }, [user && user.id]);
+  }, [user]);
 
   const fetchProducts = async (category = '', search = '', bestseller = false) => {
     setLoading(true);
