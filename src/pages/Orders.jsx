@@ -480,32 +480,33 @@ const Orders = () => {
                       Total: {currency}
                       {order.totalPrice.toFixed(2)}
                     </p>
-                    <div className="mt-4 flex flex-row gap-2 w-full flex-wrap justify-center sm:justify-end">
+                    <div className="mt-4 flex flex-row gap-2 w-full flex-nowrap justify-center sm:justify-end">
                       <button
                         onClick={() =>
                           navigate(
                             `/product/${order.items[0]?.productId || ""}`
                           )
                         }
-                        className="px-2 py-1 sm:px-4 sm:py-2 bg-[#00308F] text-white font-semibold rounded-lg shadow-sm hover:bg-[#002266] transition-all duration-300 cursor-pointer text-xs sm:text-sm flex-1 sm:flex-none"
+                        className="px-2 py-1 sm:px-4 sm:py-2 bg-[#00308F] text-white font-semibold rounded-lg shadow-sm hover:bg-[#002266] transition-all duration-300 cursor-pointer text-xs sm:text-sm flex-1 sm:flex-none whitespace-nowrap"
                         aria-label={`Buy again for order ${order.id}`}
                       >
                         Buy Again
                       </button>
+
                       <button
                         onClick={() => setSelectedOrder(order)}
-                        className="px-2 py-1 sm:px-4 sm:py-2 bg-gradient-to-r from-red-400 to-orange-500 text-white font-semibold rounded-lg shadow-sm hover:from-red-500 hover:to-orange-600 transition-all duration-300 cursor-pointer text-xs sm:text-sm flex-1 sm:flex-none"
+                        className="px-2 py-1 sm:px-4 sm:py-2 bg-gradient-to-r from-red-400 to-orange-500 text-white font-semibold rounded-lg shadow-sm hover:from-red-500 hover:to-orange-600 transition-all duration-300 cursor-pointer text-xs sm:text-sm flex-1 sm:flex-none whitespace-nowrap"
                         aria-label={`View details for order ${order.id}`}
                       >
                         Details
                       </button>
+
                       <button
                         onClick={() => handleTrackOrderClick(order)}
                         className="px-2 py-1 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-400 to-blue-600 text-white font-semibold rounded-lg shadow-sm hover:from-blue-500 hover:to-blue-700 transition-all duration-300 cursor-pointer text-xs sm:text-sm flex-1 sm:flex-none whitespace-nowrap"
                         aria-label={`View tracking for order ${order.id}`}
-                        style={{ minWidth: 0 }}
                       >
-                        <span className="truncate block">Order Track Id</span>
+                        Order Track Id
                       </button>
                     </div>
                   </div>
