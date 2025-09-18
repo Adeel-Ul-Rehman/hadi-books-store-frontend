@@ -4,10 +4,10 @@ import Title from './Title';
 import ProductItems from './ProductItems';
 import { motion } from 'framer-motion';
 import { FiBook } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom'; // ADD THIS IMPORT
+import { useNavigate } from 'react-router-dom';
 
 const BestSeller = () => {
-  const { products } = useContext(ShopContext);
+  const { products, loading } = useContext(ShopContext);
   const navigate = useNavigate(); // ADD THIS LINE
   const bestSeller = products.filter(item => item.bestseller).slice(0, 6);
 
@@ -29,7 +29,14 @@ const BestSeller = () => {
           Explore our top-selling books loved by readers and knowledge fans.
         </motion.p>
       </div>
-      {bestSeller.length > 0 ? (
+      {loading ? (
+        <div className="mt-8 flex justify-center items-center">
+          <svg className="animate-spin h-12 w-12 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      ) : bestSeller.length > 0 ? (
         <motion.div
           className="mt-6 max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6"
           initial={{ opacity: 0 }}

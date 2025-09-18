@@ -1,16 +1,36 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
 import ProductItems from "../components/ProductItems";
 import Title from "../components/Title";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiBook, FiFilter, FiX, FiChevronDown } from "react-icons/fi";
+import { FiBook, FiFilter, FiX, FiChevronDown, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 const Collections = () => {
+  const productGridRef = useRef(null);
+  // Scroll to product grid on page change
+  useEffect(() => {
+    if (productGridRef.current) {
+      const yOffset = -80; // adjust for sticky header if needed
+      const y = productGridRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  }, [currentPage]);
+  // Scroll to product grid on page change
+  useEffect(() => {
+    if (productGridRef.current) {
+      const yOffset = -80; // adjust for sticky header if needed
+      const y = productGridRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  }, [currentPage]);
   const { products, currency } = useContext(ShopContext);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [paginatedProducts, setPaginatedProducts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPage] = useState(20);
   const [activeFilters, setActiveFilters] = useState({
     category: [],
     subCategory: [],
@@ -198,7 +218,7 @@ const Collections = () => {
         result.sort((a, b) => a.price - b.price);
         break;
       case "price-high":
-        result.sort((a, b) => b.price - b.price);
+        result.sort((a, b) => b.price - a.price);
         break;
       case "newest":
         result.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -229,7 +249,41 @@ const Collections = () => {
     }
 
     setFilteredProducts(result);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [products, activeFilters, sortOption]);
+
+  // Paginate products
+  useEffect(() => {
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    const currentProducts = filteredProducts.slice(
+      indexOfFirstProduct,
+      indexOfLastProduct
+    );
+    setPaginatedProducts(currentProducts);
+  }, [filteredProducts, currentPage, productsPerPage]);
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Get page numbers for pagination
+  const pageNumbers = [];
+  for (let i = 1; i <= Math.ceil(filteredProducts.length / productsPerPage); i++) {
+    pageNumbers.push(i);
+  }
+
+  // Maximum number of page buttons to show
+  const maxPageNumbers = 5;
+  const getPageNumbersToShow = () => {
+    if (pageNumbers.length <= maxPageNumbers) {
+      return pageNumbers;
+    }
+
+    const startPage = Math.max(1, currentPage - Math.floor(maxPageNumbers / 2));
+    const endPage = Math.min(pageNumbers.length, startPage + maxPageNumbers - 1);
+
+    return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+  };
 
   const toggleFilter = (filterType, value) => {
     setActiveFilters((prev) => {
@@ -601,7 +655,7 @@ const Collections = () => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth="2"
-                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3 .922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783 .57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3 .922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783 .57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81 .588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
                       />
                     </svg>
                     Rating
@@ -1143,32 +1197,89 @@ const Collections = () => {
               </div>
             </div>
 
-            {filteredProducts.length > 0 ? (
-              <motion.div
-                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ staggerChildren: 0.1 }}
-              >
-                {filteredProducts.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <ProductItems
-                      id={product.id}
-                      image={product.image}
-                      name={product.name}
-                      price={product.price}
-                      originalPrice={product.originalPrice}
-                      category={product.category}
-                      bestseller={product.bestseller}
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
+            {paginatedProducts.length > 0 ? (
+              <>
+                <motion.div
+                  ref={productGridRef}
+                  className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ staggerChildren: 0.1 }}
+                >
+                  {paginatedProducts.map((product, index) => (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <ProductItems
+                        id={product.id}
+                        image={product.image}
+                        name={product.name}
+                        price={product.price}
+                        originalPrice={product.originalPrice}
+                        category={product.category}
+                        bestseller={product.bestseller}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+
+                {/* Pagination */}
+                {pageNumbers.length > 1 && (
+                  <div className="mt-8 flex justify-center w-full">
+                    <nav
+                      className="flex flex-wrap justify-center items-center gap-1 sm:gap-2 md:gap-3 w-full"
+                      aria-label="Pagination"
+                    >
+                      <button
+                        onClick={() => paginate(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className={`flex items-center px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 shadow-sm border focus:outline-none focus:ring-2 focus:ring-red-400 ${
+                          currentPage === 1
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300 hover:text-red-700"
+                        }`}
+                        aria-label="Previous Page"
+                      >
+                        <FiChevronLeft className="w-4 h-4 mr-0.5" />
+                        <span className="hidden xs:inline">Previous</span>
+                      </button>
+
+                      {getPageNumbersToShow().map((number) => (
+                        <button
+                          key={number}
+                          onClick={() => paginate(number)}
+                          className={`px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 shadow-sm border focus:outline-none focus:ring-2 focus:ring-red-400 ${
+                            currentPage === number
+                              ? "bg-red-500 text-white font-semibold border-red-500"
+                              : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300 hover:text-red-700"
+                          }`}
+                          aria-current={currentPage === number ? "page" : undefined}
+                          aria-label={`Go to page ${number}`}
+                        >
+                          {number}
+                        </button>
+                      ))}
+
+                      <button
+                        onClick={() => paginate(currentPage + 1)}
+                        disabled={currentPage === pageNumbers.length}
+                        className={`flex items-center px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 shadow-sm border focus:outline-none focus:ring-2 focus:ring-red-400 ${
+                          currentPage === pageNumbers.length
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300 hover:text-red-700"
+                        }`}
+                        aria-label="Next Page"
+                      >
+                        <span className="hidden xs:inline">Next</span>
+                        <FiChevronRight className="w-4 h-4 ml-0.5" />
+                      </button>
+                    </nav>
+                  </div>
+                )}
+              </>
             ) : (
               <motion.div
                 initial={{ y: 20, opacity: 0 }}

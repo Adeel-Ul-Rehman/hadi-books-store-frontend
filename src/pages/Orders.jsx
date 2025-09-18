@@ -501,10 +501,11 @@ const Orders = () => {
                       </button>
                       <button
                         onClick={() => handleTrackOrderClick(order)}
-                        className="px-2 py-1 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-400 to-blue-600 text-white font-semibold rounded-lg shadow-sm hover:from-blue-500 hover:to-blue-700 transition-all duration-300 cursor-pointer text-xs sm:text-sm flex-1 sm:flex-none"
+                        className="px-2 py-1 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-400 to-blue-600 text-white font-semibold rounded-lg shadow-sm hover:from-blue-500 hover:to-blue-700 transition-all duration-300 cursor-pointer text-xs sm:text-sm flex-1 sm:flex-none whitespace-nowrap"
                         aria-label={`View tracking for order ${order.id}`}
+                        style={{ minWidth: 0 }}
                       >
-                        Order Track Id
+                        <span className="truncate block">Order Track Id</span>
                       </button>
                     </div>
                   </div>

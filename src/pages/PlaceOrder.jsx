@@ -14,7 +14,7 @@ const PlaceOrder = () => {
     products,
     currency,
     cartItems,
-    processCheckout, 
+    processCheckout,
     calculateCheckout,
     uploadPaymentProof,
     TAX_RATE,
@@ -291,13 +291,88 @@ const PlaceOrder = () => {
             </button>
           </motion.div>
         ) : (
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8 flex-col md:flex-row">
+            {/* Order Summary */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg p-6 h-fit md:sticky md:top-6 order-1 md:order-2 md:col-span-1"
+            >
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
+                Order Summary
+              </h2>
+              <div className="space-y-4">
+                <AnimatePresence>
+                  {totals.items.map((item, index) => (
+                    <motion.div
+                      key={`${item.productId}-${index}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex items-center gap-4 p-2 rounded-xl hover:bg-gray-50 transition-all duration-200"
+                    >
+                      <img
+                        src={getImageUrl(item)}
+                        alt={item.productName}
+                        className="w-12 h-12 object-cover rounded-xl"
+                        loading="lazy"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-800">
+                          {item.productName}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          Quantity: {item.quantity}
+                        </p>
+                      </div>
+                      <p className="text-sm font-bold text-[#00308F]">
+                        {currency}
+                        {(item.price * item.quantity).toFixed(2)}
+                      </p>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                <div className="space-y-2 pt-4 border-t border-gray-200">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>
+                      {currency}
+                      {totals.subtotal.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Tax ({(TAX_RATE * 100).toFixed(0)}%)</span>
+                    <span>
+                      {currency}
+                      {totals.taxes.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Delivery Fee</span>
+                    <span>
+                      {currency}
+                      {totals.shippingFee.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between font-bold text-gray-900 text-lg mt-2">
+                    <span>Total</span>
+                    <span>
+                      {currency}
+                      {totals.total.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
             {/* Shipping Information */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="md:col-span-2 space-y-6"
+              className="md:col-span-2 space-y-6 order-2 md:order-1"
             >
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 p-6">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -519,8 +594,8 @@ const PlaceOrder = () => {
                       Payment Method
                     </h2>
                     <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        <label className="flex items-center space-x-2 cursor-pointer">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <label className="flex items-center space-x-2 cursor-pointer whitespace-nowrap">
                           <input
                             type="radio"
                             name="paymentMethod"
@@ -529,11 +604,11 @@ const PlaceOrder = () => {
                             onChange={handleChange}
                             className="form-radio text-red-500"
                           />
-                          <span className="text-gray-700">
+                          <span className="text-gray-700 text-sm sm:text-base">
                             Cash on Delivery
                           </span>
                         </label>
-                        <label className="flex items-center space-x-2 cursor-pointer">
+                        <label className="flex items-center space-x-2 cursor-pointer whitespace-nowrap">
                           <input
                             type="radio"
                             name="paymentMethod"
@@ -542,7 +617,9 @@ const PlaceOrder = () => {
                             onChange={handleChange}
                             className="form-radio text-red-500"
                           />
-                          <span className="text-gray-700">Pay Online</span>
+                          <span className="text-gray-700 text-sm sm:text-base">
+                            Pay Online
+                          </span>
                         </label>
                       </div>
 
@@ -706,81 +783,6 @@ const PlaceOrder = () => {
                     {isSubmitting ? "Processing..." : "Place Order"}
                   </button>
                 </form>
-              </div>
-            </motion.div>
-
-            {/* Order Summary */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg p-6 h-fit sticky top-6"
-            >
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
-                Order Summary
-              </h2>
-              <div className="space-y-4">
-                <AnimatePresence>
-                  {totals.items.map((item, index) => (
-                    <motion.div
-                      key={`${item.productId}-${index}`}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex items-center gap-4 p-2 rounded-xl hover:bg-gray-50 transition-all duration-200"
-                    >
-                      <img
-                        src={getImageUrl(item)}
-                        alt={item.productName}
-                        className="w-12 h-12 object-cover rounded-xl"
-                        loading="lazy"
-                      />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-800">
-                          {item.productName}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          Quantity: {item.quantity}
-                        </p>
-                      </div>
-                      <p className="text-sm font-bold text-[#00308F]">
-                        {currency}
-                        {(item.price * item.quantity).toFixed(2)}
-                      </p>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                <div className="space-y-2 pt-4 border-t border-gray-200">
-                  <div className="flex justify-between text-gray-600">
-                    <span>Subtotal</span>
-                    <span>
-                      {currency}
-                      {totals.subtotal.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Tax ({(TAX_RATE * 100).toFixed(0)}%)</span>
-                    <span>
-                      {currency}
-                      {totals.taxes.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Delivery Fee</span>
-                    <span>
-                      {currency}
-                      {totals.shippingFee.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between font-bold text-gray-900 text-lg mt-2">
-                    <span>Total</span>
-                    <span>
-                      {currency}
-                      {totals.total.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
               </div>
             </motion.div>
           </div>
