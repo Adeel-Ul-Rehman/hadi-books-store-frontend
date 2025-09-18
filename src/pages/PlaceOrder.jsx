@@ -199,6 +199,13 @@ const PlaceOrder = () => {
           position: "top-center",
           autoClose: 3000,
         });
+        // Clear cart after successful order
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("localCart");
+          sessionStorage.removeItem("localCart");
+        }
+        if (typeof setCartItems === "function") setCartItems([]);
+
         if (formData.paymentMethod === "online" && paymentProof) {
           const uploadResponse = await uploadPaymentProof(
             checkoutResponse.order.id,
