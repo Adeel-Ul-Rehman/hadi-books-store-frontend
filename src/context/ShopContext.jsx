@@ -466,6 +466,7 @@ const ShopContextProvider = ({ children }) => {
       value={{
         products,
         cartItems,
+        setCartItems, // Added to allow clearing cart
         wishlistItems,
         currency,
         addToCart,

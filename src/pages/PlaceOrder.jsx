@@ -14,6 +14,7 @@ const PlaceOrder = () => {
     products,
     currency,
     cartItems,
+    setCartItems, // Ensure this is destructured from ShopContext
     processCheckout,
     calculateCheckout,
     uploadPaymentProof,
@@ -181,6 +182,7 @@ const PlaceOrder = () => {
     }
 
     setIsSubmitting(true);
+    const prevCartItems = [...cartItems]; // Store previous cart state for rollback
     try {
       const checkoutPayload = {
         ...formData,
@@ -200,11 +202,9 @@ const PlaceOrder = () => {
           autoClose: 3000,
         });
         // Clear cart after successful order
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("localCart");
-          sessionStorage.removeItem("localCart");
-        }
-        if (typeof setCartItems === "function") setCartItems([]);
+        setCartItems([]); // Clear the cart in ShopContext
+        localStorage.removeItem("localCart"); // Clear local storage
+        sessionStorage.removeItem("localCart"); // Clear session storage
 
         if (formData.paymentMethod === "online" && paymentProof) {
           const uploadResponse = await uploadPaymentProof(
@@ -234,6 +234,7 @@ const PlaceOrder = () => {
           position: "top-center",
           autoClose: 3000,
         });
+        setCartItems(prevCartItems); // Revert cart if checkout fails
       }
     } catch (error) {
       console.error("Checkout Error:", error);
@@ -241,6 +242,7 @@ const PlaceOrder = () => {
         position: "top-center",
         autoClose: 3000,
       });
+      setCartItems(prevCartItems); // Revert cart on error
     } finally {
       setIsSubmitting(false);
     }
