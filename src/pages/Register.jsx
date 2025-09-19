@@ -25,6 +25,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const inputRefs = useRef([]);
   const otpSectionRef = useRef(null);
+
   // Scroll OTP input into view when step changes to 'verify'
   useEffect(() => {
     if (step === "verify" && otpSectionRef.current) {
@@ -180,15 +181,20 @@ const Register = () => {
       const data = await verifyEmail(otpString);
       if (data.success) {
         toast.success("Email verified successfully");
-        // Remove any auth tokens or user info to ensure user is logged out
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        sessionStorage.removeItem("token");
-        sessionStorage.removeItem("user");
-        if (typeof setUser === "function") setUser(null); // Explicitly log out in context
-        // Optionally, clear cookies if you use them for auth
-        // document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        navigate("/login");
+        // Set user in context for auto-login
+        setUser({
+          id: data.user.id,
+          name: data.user.name,
+          lastName: data.user.lastName,
+          email: data.user.email,
+          // Add other user properties as needed
+        });
+        // Store token in localStorage if your app uses it
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
+        // Navigate to dashboard or homepage instead of login
+        navigate("/");
       } else {
         toast.error(data.message || "Invalid OTP");
       }
@@ -478,7 +484,7 @@ const Register = () => {
                 {otp.map((digit, index) => (
                   <input
                     key={index}
-                    type="text"
+                    type="tel"
                     maxLength="1"
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
