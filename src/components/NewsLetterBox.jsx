@@ -16,19 +16,32 @@ const NewsLetterBox = () => {
     }
   };
 
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+  };
+
+  const formVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" } },
+    hover: { scale: 1.02, transition: { duration: 0.3 } }
+  };
+
   return (
     <motion.section
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      variants={sectionVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
       className="py-8 px-4 sm:px-6 lg:px-8"
     >
       <div className="max-w-7xl mx-auto text-center">
         <Title text1="SUBSCRIBE" text2="NEWSLETTER" />
         <motion.p
           initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
           className="mt-2 text-sm sm:text-base text-gray-600 font-medium max-w-2xl mx-auto italic tracking-wide"
         >
           Stay updated with our latest books and exclusive offers.
@@ -36,8 +49,11 @@ const NewsLetterBox = () => {
       </div>
 
       <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        variants={formVariants}
+        initial="hidden"
+        whileInView="visible"
+        whileHover="hover"
+        viewport={{ once: true }}
         transition={{ delay: 0.4 }}
         className="mt-6 max-w-xl mx-auto"
       >
@@ -52,16 +68,16 @@ const NewsLetterBox = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email address"
-            className="w-full flex-1 py-2 px-4 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00308F] text-sm text-gray-800"
+            className="w-full flex-1 py-2 px-4 rounded-full border border-gray-300 focus:outline-none text-sm text-gray-800"
             aria-label="Email address"
             required
           />
           <div className="w-full sm:w-auto flex justify-center sm:block">
             <button
               type="submit"
-              className="py-2 px-5 bg-gradient-to-r from-red-400 to-orange-500 text-white font-semibold rounded-full hover:from-red-500 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-[#00308F] text-sm transition-all duration-300"
+              className="py-2 px-5 bg-gradient-to-r cursor-pointer from-red-400 to-orange-500 text-white font-semibold rounded-full hover:from-red-500 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-[#00308F] text-sm transition-all duration-300"
               aria-label="Subscribe to newsletter"
-            >
+            > 
               Subscribe
             </button>
           </div>

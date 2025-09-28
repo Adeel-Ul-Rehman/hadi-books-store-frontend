@@ -1,13 +1,33 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { assets } from '../assets/assets';
+import { motion } from 'framer-motion';
 
 const Footer = () => {
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.5 } }
+  };
+
   return (
-    <footer className="py-8 px-4 sm:px-6 lg:px-8 border-t border-gray-400 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100">
+    <motion.footer
+      variants={sectionVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+      className="py-8 px-4 sm:px-6 lg:px-8 border-t border-gray-400 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100"
+    >
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Logo Section */}
-        <div className="flex flex-col items-center sm:items-start">
+        <motion.div 
+          variants={itemVariants}
+          className="flex flex-col items-center sm:items-start"
+        >
           <img
             src="/logo.png"
             alt="HADI BOOKS STORE Logo"
@@ -16,10 +36,13 @@ const Footer = () => {
           <p className="text-sm text-gray-800 italic tracking-wide text-center sm:text-left">
             Your trusted bookstore for knowledge and stories.
           </p>
-        </div>
+        </motion.div>
 
         {/* Company Section */}
-        <div className="flex flex-col items-center sm:items-start">
+        <motion.div 
+          variants={itemVariants}
+          className="flex flex-col items-center sm:items-start"
+        >
           <h3 className="text-base font-semibold text-gray-900 mb-3">COMPANY</h3>
           <ul className="space-y-2 text-center sm:text-left">
             {[{ path: '/', text: 'Home' }, { path: '/about', text: 'About us' }, { path: '/delivery', text: 'Delivery' }, { path: '/privacy-policy', text: 'Privacy Policy' }].map(
@@ -28,8 +51,8 @@ const Footer = () => {
                   <NavLink
                     to={path}
                     className={({ isActive }) =>
-                      `text-sm text-gray-800 hover:text-red-600 transition-colors duration-300 ${
-                        isActive ? 'text-red-600 font-medium' : ''
+                      `text-sm text-gray-800 hover:text-[#00308F] transition-colors duration-300 ${
+                        isActive ? 'text-[#00308F] font-medium' : ''
                       }`
                     }
                   >
@@ -39,17 +62,20 @@ const Footer = () => {
               )
             )}
           </ul>
-        </div>
+        </motion.div>
 
         {/* Get in Touch Section */}
-        <div className="flex flex-col items-center sm:items-start">
+        <motion.div 
+          variants={itemVariants}
+          className="flex flex-col items-center sm:items-start"
+        >
           <h3 className="text-base font-semibold text-gray-900 mb-3">Get in Touch</h3>
           <ul className="space-y-2 text-center sm:text-left w-full">
             <li className="text-sm text-gray-800">
               <span className="font-medium">Email:</span>{' '}
               <a
                 href="mailto:support@hadibooks.com"
-                className="hover:text-red-600 transition-colors duration-300"
+                className="hover:text-[#00308F] transition-colors duration-300"
               >
                 hadibooksstore01@gmail.com
               </a>
@@ -58,7 +84,7 @@ const Footer = () => {
               <span className="font-medium">Phone:</span>{' '}
               <a
                 href="tel:+12345678900"
-                className="hover:text-red-600 transition-colors duration-300"
+                className="hover:text-[#00308F] transition-colors duration-300"
               >
                 0309 0005634
               </a>
@@ -70,7 +96,7 @@ const Footer = () => {
                 href="https://maps.app.goo.gl/c9aXiLstVma81ytg8"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-red-600 transition-transform duration-300"
+                className="hover:text-[#00308F] transition-transform duration-300"
                 aria-label="View store location on map"
               >
                 <img
@@ -81,10 +107,13 @@ const Footer = () => {
               </a>
             </li>
           </ul>
-        </div>
+        </motion.div>
 
         {/* Follow Us Section */}
-        <div className="flex flex-col items-center sm:items-start">
+        <motion.div 
+          variants={itemVariants}
+          className="flex flex-col items-center sm:items-start"
+        >
           <h3 className="text-base font-semibold text-gray-900 mb-3">Follow Us</h3>
           <ul className="flex gap-3">
             <li>
@@ -132,16 +161,19 @@ const Footer = () => {
               </a>
             </li>
           </ul>
-        </div>
+        </motion.div>
       </div>
 
-      <div className="mt-6 border-t border-gray-400 pt-4 text-center">
+      <motion.div 
+        variants={itemVariants}
+        className="mt-6 border-t border-gray-400 pt-4 text-center"
+      >
         <p className="text-sm text-gray-800">
           &copy; {new Date().getFullYear()} HADI BOOKS STORE. All rights reserved.
         </p>
-      </div>
-    </footer>
+      </motion.div>
+    </motion.footer>
   );
 };
 
-export default Footer;  
+export default Footer;

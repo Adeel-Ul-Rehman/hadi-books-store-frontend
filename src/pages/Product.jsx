@@ -513,8 +513,8 @@ const Product = () => {
                 onClick={handleWishlistToggle}
                 className={`p-2 rounded-lg transition-colors duration-300 ${
                   isInWishlist(productData.id)
-                    ? "bg-[#00308F] text-white shadow-sm"
-                    : "bg-gray-100 text-gray-400 border cursor-pointer border-gray-300 hover:bg-gray-200 hover:text-[#00308F]"
+                    ? "bg-red-500 text-white shadow-sm"
+                    : "bg-gray-100 text-gray-400 border cursor-pointer border-gray-300 hover:bg-gray-200 hover:text-red-500"
                 }`}
                 aria-label={
                   isInWishlist(productData.id)

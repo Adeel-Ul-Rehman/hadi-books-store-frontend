@@ -74,6 +74,12 @@ const ProductItems = ({
     }
   };
 
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.95, rotate: -5 },
+    visible: { opacity: 1, scale: 1, rotate: 0, transition: { duration: 0.5 } },
+    hover: { scale: 1.05, y: -5, transition: { duration: 0.3 } },
+  };
+
   const CardContent = (
     <>
       <div className="relative">
@@ -85,7 +91,7 @@ const ProductItems = ({
           loading="lazy"
         />
         {bestseller && (
-          <span className="absolute top-2 left-2 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-lg">
+          <span className="absolute top-2 left-2 bg-[#00308F] text-white text-xs font-semibold px-2 py-1 rounded-full shadow-lg">
             Bestseller
           </span>
         )}
@@ -136,7 +142,7 @@ const ProductItems = ({
                 }}
                 className={`px-2 py-1 text-xs rounded-full transition-all duration-200 ${
                   selectedFormat === format
-                    ? "bg-gradient-to-r from-red-400 to-orange-500 text-white"
+                    ? "bg-[#00308F] text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -150,11 +156,12 @@ const ProductItems = ({
         <motion.button
           onClick={handleAddToCart}
           whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.05 }}
           disabled={isAddingToCart}
           className={`w-full mt-3 py-2 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg transition-colors duration-300 ${
             isAddingToCart
               ? "bg-green-100 text-green-800"
-              : "bg-gradient-to-r from-red-400 to-orange-500 hover:from-red-500 hover:to-orange-600 text-white"
+              : "bg-[#00308F] hover:bg-[#002570] text-white"
           }`}
           aria-label={isAddingToCart ? "Added to cart" : "Add to cart"}
         >
@@ -173,12 +180,16 @@ const ProductItems = ({
 
   return (
     <motion.div
-      className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:scale-105"
-      whileHover={{ y: -5 }}
+      variants={itemVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+      whileHover="hover"
+      className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
     >
       <Link
         to={`/product/${id}`}
-        className="block text-gray-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded-2xl"
+        className="block text-gray-800 cursor-pointer focus:outline-none rounded-2xl"
         aria-label={`View details for ${name}`}
       >
         {CardContent}

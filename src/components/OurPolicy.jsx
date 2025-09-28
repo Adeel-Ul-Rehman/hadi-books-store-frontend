@@ -22,19 +22,32 @@ const OurPolicy = () => {
     },
   ];
 
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.95, rotate: -5 },
+    visible: { opacity: 1, scale: 1, rotate: 0, transition: { duration: 0.5 } },
+    hover: { scale: 1.05, rotate: 2, transition: { duration: 0.3 } }
+  };
+
   return (
     <motion.section
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      variants={sectionVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
       className="py-8 px-4 sm:px-6 lg:px-8"
     >
       <div className="max-w-7xl mx-auto text-center">
         <Title text1={"OUR"} text2={"POLICIES"} />
         <motion.p
           initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
           className="mt-2 text-sm sm:text-base text-gray-600 font-medium max-w-2xl mx-auto italic tracking-wide"
         >
           Shop with confidence with our customer-focused policies.
@@ -42,17 +55,21 @@ const OurPolicy = () => {
       </div>
       <motion.div
         className="mt-6 max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ staggerChildren: 0.2 }}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={{
+          visible: { transition: { staggerChildren: 0.2 } }
+        }}
       >
         {policies.map((policy, index) => (
           <motion.div
             key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.2 }}
-            className="flex flex-col items-center text-center p-4 sm:p-5 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 hover:scale-[1.02]"
+            variants={cardVariants}
+            whileHover="hover"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="flex flex-col items-center text-center p-4 sm:p-5 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
           >
             <img
               src={policy.icon}

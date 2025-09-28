@@ -23,7 +23,7 @@ const Delivery = () => {
       exit={{ opacity: 0 }}
       className="min-h-screen py-12 px-4 sm:px-6 lg:px-8"
       style={{
-        background: "linear-gradient(to right, #e0f2fe, #ffedd5, #fecaca)", // same as Home gradient
+        background: "linear-gradient(to right, #e0f2fe, #ffedd5, #fecaca)", // Gradient like Privacy page
       }}
     >
       <div className="max-w-6xl mx-auto">
@@ -37,34 +37,23 @@ const Delivery = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border p-6 sm:p-8"
-          style={{
-            background: "linear-gradient(to right, #e0f2fe, #ffedd5, #fecaca)",
-            borderColor: "#e5e7eb",
-          }}
+          className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 p-6 sm:p-8"
         >
-          {/* Sections */}
           <section className="mb-8">
-            <h2 className="text-xl sm:text-2xl font-semibold mb-3 relative" style={{ color: "#00308F" }}>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3">
               Introduction
-              <span className="absolute bottom-0 left-0 h-0.5 w-12 bg-gradient-to-r from-red-400 to-orange-500"></span>
             </h2>
-            <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#4b5563" }}>
-              We are committed to delivering your orders promptly and reliably
-              across Pakistan. Our delivery process is designed to ensure your
-              products arrive safely and on time, partnering with trusted
-              courier services to provide a seamless experience.
+            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+              We are committed to delivering your orders promptly and reliably...
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl sm:text-2xl font-semibold mb-3 relative" style={{ color: "#00308F" }}>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3">
               Shipping Methods
-              <span className="absolute bottom-0 left-0 h-0.5 w-12 bg-gradient-to-r from-red-400 to-orange-500"></span>
             </h2>
-            <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#4b5563" }}>
-              We partner with leading courier services in Pakistan to deliver
-              your orders efficiently. Our trusted shipping partners include:
+            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+              We partner with leading courier services...
             </p>
 
             {/* Shipping Icons */}
@@ -85,12 +74,12 @@ const Delivery = () => {
                   <img
                     src={company.image}
                     alt={`${company.name} logo`}
-                    className="h-14 w-14 object-contain rounded-md shadow-md hover:scale-110 hover:shadow-lg transition-all duration-300"
+                    className="h-14 w-14 object-contain rounded-md shadow-md hover:scale-110 hover:shadow-lg transition-all duration-300 bg-white"
                     onError={(e) => {
                       e.target.src = PLACEHOLDER_IMAGE;
                     }}
                   />
-                  <p className="mt-2 text-xs sm:text-sm" style={{ color: "#4b5563" }}>
+                  <p className="mt-2 text-xs sm:text-sm text-gray-700">
                     {company.name}
                   </p>
                 </motion.div>
@@ -98,55 +87,43 @@ const Delivery = () => {
             </motion.div>
           </section>
 
+          {/* The rest sections */}
           <section className="mb-8">
-            <h2 className="text-xl sm:text-2xl font-semibold mb-3 relative" style={{ color: "#00308F" }}>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3">
               Delivery Timelines
-              <span className="absolute bottom-0 left-0 h-0.5 w-12 bg-gradient-to-r from-red-400 to-orange-500"></span>
             </h2>
-            <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#4b5563" }}>
-              Orders are typically delivered within 4-7 business days after
-              processing. Delivery times may vary depending on your location
-              within Pakistan and the courier service used. You will receive a
-              tracking ID once your order is shipped.
+            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+              Orders are typically delivered within 4–7 business days...
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl sm:text-2xl font-semibold mb-3 relative" style={{ color: "#00308F" }}>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3">
               Shipping Costs
-              <span className="absolute bottom-0 left-0 h-0.5 w-12 bg-gradient-to-r from-red-400 to-orange-500"></span>
             </h2>
-            <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#4b5563" }}>
-              A flat shipping fee of 100 PKR is applied to all orders within
-              Pakistan, regardless of order size or weight. This ensures
-              transparent and predictable costs for our customers.
+            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+              A flat shipping fee of 100 PKR is applied...
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl sm:text-2xl font-semibold mb-3 relative" style={{ color: "#00308F" }}>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3">
               Tracking Information
-              <span className="absolute bottom-0 left-0 h-0.5 w-12 bg-gradient-to-r from-red-400 to-orange-500"></span>
             </h2>
-            <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#4b5563" }}>
-              Once your order is shipped, you will receive a tracking ID via
-              email or in your account dashboard. Use this ID on the respective
-              courier’s website to monitor your shipment’s progress.
+            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+              Once your order is shipped, you will receive a tracking ID...
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl sm:text-2xl font-semibold mb-3 relative" style={{ color: "#00308F" }}>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3">
               Contact Us
-              <span className="absolute bottom-0 left-0 h-0.5 w-12 bg-gradient-to-r from-red-400 to-orange-500"></span>
             </h2>
-            <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#4b5563" }}>
-              For any questions about your delivery or our shipping process,
-              please contact our support team at{" "}
+            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+              For any questions, contact{" "}
               <a
-                href="mailto:support@example.com"
-                className="font-semibold transition-colors"
-                style={{ color: "#00308F" }}
+                href="mailto:hadibooksstore01@gmail.com"
+                className="text-blue-700 hover:text-blue-900 font-semibold transition-colors"
               >
                 hadibooksstore01@gmail.com
               </a>

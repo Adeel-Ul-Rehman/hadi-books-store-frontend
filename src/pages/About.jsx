@@ -4,6 +4,25 @@ import Title from "../components/Title";
 import TeamMember from "../components/TeamMember";
 import { assets } from "../assets/assets";
 
+// Animation Variants
+const fadeUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: (delay = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, ease: "easeOut", delay },
+  }),
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: (delay = 0) => ({
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.6, ease: "easeOut", delay },
+  }),
+};
+
 const About = () => {
   const team = [
     {
@@ -31,35 +50,42 @@ const About = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial="hidden"
+      animate="visible"
       exit={{ opacity: 0 }}
-      className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100"
+      className="min-h-screen py-8 px-4 sm:px-6 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 font-['Poppins',sans-serif]"
     >
       <div className="max-w-7xl mx-auto">
         {/* Hero Section */}
-        <div className="text-center mb-16">
+        <motion.div
+          variants={fadeUp}
+          custom={0.1}
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
           <Title text1="OUR" text2="STORY" />
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            variants={fadeUp}
+            custom={0.3}
+            whileInView="visible"
+            viewport={{ once: true }}
             className="mt-4 text-lg text-gray-800 max-w-3xl mx-auto"
           >
             At Hadi Books Store, we believe every book is a doorway ✨ to
             knowledge, to imagination, and to worlds waiting to be discovered.
           </motion.p>
-        </div>
+        </motion.div>
 
         {/* Mission Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch mb-20">
-          {/* Left Box */}
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            variants={scaleIn}
+            custom={0.2}
+            initial="hidden"
+            whileInView="visible"
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="bg-white shadow-sm border border-gray-300 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-6 flex flex-col justify-center h-96"
+            className="bg-white shadow-sm border border-gray-300 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-[1.02] transition-all duration-300 p-6 flex flex-col justify-center h-96"
           >
             <h2 className="text-3xl font-bold text-gray-900 mb-6">
               Our Mission
@@ -76,13 +102,13 @@ const About = () => {
             </p>
           </motion.div>
 
-          {/* Right Box */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            variants={scaleIn}
+            custom={0.4}
+            initial="hidden"
+            whileInView="visible"
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="relative bg-white shadow-sm border border-gray-300 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 h-96"
+            className="relative bg-white shadow-sm border border-gray-300 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-[1.02] transition-all duration-300 h-96"
           >
             <img
               src={assets.shop}
@@ -98,7 +124,14 @@ const About = () => {
         </div>
 
         {/* Values Section */}
-        <div className="mb-20">
+        <motion.div
+          variants={fadeUp}
+          custom={0.2}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="mb-20"
+        >
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
             Our Values
           </h2>
@@ -125,35 +158,49 @@ const About = () => {
             ].map((value, index) => (
               <motion.div
                 key={value.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                variants={scaleIn}
+                custom={index * 0.2}
+                initial="hidden"
+                whileInView="visible"
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white shadow-sm border border-gray-300 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-6"
+                className="bg-white shadow-sm border border-gray-300 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-[1.02] transition-all duration-300 p-6"
               >
                 <div className="text-4xl mb-4">{value.icon}</div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
                   {value.title}
                 </h3>
-                <p className="text-gray-800">
-                  {value.description}
-                </p>
+                <p className="text-gray-800">{value.description}</p>
               </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Team Section */}
-        <div>
+        <motion.div
+          variants={fadeUp}
+          custom={0.3}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
             Meet Our Team
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {team.map((member, index) => (
-              <TeamMember key={member.id} member={member} index={index} />
+              <motion.div
+                key={member.id}
+                variants={fadeUp}
+                custom={index * 0.2}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+              >
+                <TeamMember member={member} index={index} />
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </motion.div>
   );

@@ -11,19 +11,31 @@ const LatestCollection = () => {
   const navigate = useNavigate();
   const latestProducts = products.slice(0, 12);
 
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
+  };
+
   return (
     <motion.section
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      variants={sectionVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
       className="py-6 px-4 sm:px-6 lg:px-8"
     >
       <div className="max-w-7xl mx-auto text-center">
         <Title text1={'LATEST'} text2={'COLLECTION'} />
         <motion.p
           initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
           className="mt-2 text-sm sm:text-base text-gray-600 font-medium font-['Poppins',sans-serif] max-w-2xl mx-auto italic tracking-wide"
         >
           Discover our newest handpicked books curated for knowledge seekers & story lovers.
@@ -39,17 +51,19 @@ const LatestCollection = () => {
       ) : latestProducts.length > 0 ? (
         <motion.div
           className="mt-6 max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ staggerChildren: 0.1 }}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+          variants={{
+            visible: { transition: { staggerChildren: 0.1 } }
+          }}
         >
           {latestProducts.map((item, index) => (
             <motion.div
               key={item.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="w-full"
+              variants={itemVariants}
+              whileHover={{ scale: 1.05, rotate: 1, transition: { duration: 0.3 } }}
+              whileTap={{ scale: 0.95 }}
             >
               <ProductItems
                 id={item.id}
@@ -66,8 +80,9 @@ const LatestCollection = () => {
       ) : (
         <motion.div
           initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
           className="mt-6 max-w-md mx-auto bg-white rounded-2xl shadow-sm p-6 text-center border border-gray-100"
         >
           <FiBook className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400" />

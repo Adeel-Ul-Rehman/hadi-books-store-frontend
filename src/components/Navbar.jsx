@@ -90,7 +90,7 @@ const Navbar = () => {
 
           {/* Wishlist */}
           <button
-            className="relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#00308F] focus:ring-offset-2"
+            className="relative cursor-pointer"
             onClick={() => navigate("/wishlist")}
             aria-label="View wishlist"
           >
@@ -104,7 +104,7 @@ const Navbar = () => {
 
           {/* Cart */}
           <button
-            className="relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#00308F] focus:ring-offset-2"
+            className="relative cursor-pointer"
             onClick={() => navigate("/cart")}
             aria-label="View cart"
           >
@@ -128,7 +128,7 @@ const Navbar = () => {
             }
           >
             <button
-              className="focus:outline-none focus:ring-2 focus:ring-[#00308F] focus:ring-offset-2 rounded-full"
+              className="rounded-full"
               aria-label="Profile menu"
             >
               {user ? (
@@ -232,7 +232,7 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden flex items-center focus:outline-none focus:ring-2 focus:ring-[#00308F] focus:ring-offset-2 p-1"
+            className="md:hidden flex items-center p-1"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Toggle mobile menu"
           >
