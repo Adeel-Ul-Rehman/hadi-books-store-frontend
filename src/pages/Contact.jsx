@@ -58,7 +58,7 @@ const Contact = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 dark:from-gray-800 dark:via-gray-900 dark:to-black"
+      className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100"
     >
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
@@ -67,7 +67,7 @@ const Contact = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mt-3 text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto"
+            className="mt-3 text-base sm:text-lg text-gray-800 max-w-3xl mx-auto"
           >
             Have questions or feedback? We'd love to hear from you. Fill out the
             form below or reach out through our contact information.
@@ -80,16 +80,16 @@ const Contact = () => {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="bg-white shadow-sm border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-4 mb-8"
+          className="bg-white shadow-sm border border-gray-300 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-4 mb-8"
         >
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-200 mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
             Contact Information
           </h2>
           <div className="space-y-4">
             <div className="flex items-start">
-              <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mr-3">
+              <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
                 <svg
-                  className="h-4 w-4 text-gray-600 dark:text-gray-400"
+                  className="h-4 w-4 text-gray-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -103,21 +103,21 @@ const Contact = () => {
                 </svg>
               </div>
               <div>
-                <h3 className="text-base font-medium text-gray-900 dark:text-gray-200">
+                <h3 className="text-base font-medium text-gray-900">
                   Phone
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-800">
                   +92 3090005634
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-sm text-gray-800 mt-1">
                   Mon-Sun: 9am-6pm
                 </p>
               </div>
             </div>
             <div className="flex items-start">
-              <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mr-3">
+              <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
                 <svg
-                  className="h-4 w-4 text-gray-600 dark:text-gray-400"
+                  className="h-4 w-4 text-gray-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -131,18 +131,18 @@ const Contact = () => {
                 </svg>
               </div>
               <div>
-                <h3 className="text-base font-medium text-gray-900 dark:text-gray-200">
+                <h3 className="text-base font-medium text-gray-900">
                   Email
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-800">
                   hadibooksstore@gmail.com
                 </p>
               </div>
             </div>
             <div className="flex items-start">
-              <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mr-3">
+              <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
                 <svg
-                  className="h-4 w-4 text-gray-600 dark:text-gray-400"
+                  className="h-4 w-4 text-gray-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -162,13 +162,13 @@ const Contact = () => {
                 </svg>
               </div>
               <div>
-                <h3 className="text-base font-medium text-gray-900 dark:text-gray-200">
+                <h3 className="text-base font-medium text-gray-900">
                   Address
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-800">
                   Sarwar Market Main Urdu Bazaar
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-800">
                   Lahore, Pakistan
                 </p>
               </div>
@@ -184,14 +184,14 @@ const Contact = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-white shadow-sm border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-4 flex flex-col min-h-fit max-h-[400px]"
+            className="bg-white shadow-sm border border-gray-300 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-4 flex flex-col min-h-fit max-h-[400px]"
           >
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-200 mb-3">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">
               Send us a message
             </h2>
 
             {submitSuccess && (
-              <div className="mb-3 p-3 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-lg text-sm">
+              <div className="mb-3 p-3 bg-green-100 text-green-800 rounded-lg text-sm">
                 Your email client has been opened. Please send the email to submit your message.
               </div>
             )}
@@ -201,7 +201,7 @@ const Contact = () => {
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-xs font-medium text-gray-900 dark:text-gray-200 mb-1"
+                    className="block text-xs font-medium text-gray-900 mb-1"
                   >
                     Name
                   </label>
@@ -212,13 +212,13 @@ const Contact = () => {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:ring-orange-600 focus:border-orange-600 transition-all duration-200 text-sm"
+                    className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-orange-600 focus:border-orange-600 transition-all duration-200 text-sm text-gray-800"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="subject"
-                    className="block text-xs font-medium text-gray-900 dark:text-gray-200 mb-1"
+                    className="block text-xs font-medium text-gray-900 mb-1"
                   >
                     Subject
                   </label>
@@ -229,13 +229,13 @@ const Contact = () => {
                     value={formData.subject}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:ring-orange-600 focus:border-orange-600 transition-all duration-200 text-sm"
+                    className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-orange-600 focus:border-orange-600 transition-all duration-200 text-sm text-gray-800"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="message"
-                    className="block text-xs font-medium text-gray-900 dark:text-gray-200 mb-1"
+                    className="block text-xs font-medium text-gray-900 mb-1"
                   >
                     Message
                   </label>
@@ -246,7 +246,7 @@ const Contact = () => {
                     value={formData.message}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-8 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:ring-orange-600 focus:border-orange-600 transition-all duration-200 text-sm"
+                    className="w-full px-4 py-8 border border-gray-300 rounded-md focus:ring-orange-600 focus:border-orange-600 transition-all duration-200 text-sm text-gray-800"
                   ></textarea>
                 </div>
               </div>
@@ -254,7 +254,7 @@ const Contact = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-[160px] py-2 cursor-pointer bg-[#00308F] hover:bg-[#002570] dark:bg-[#00308F] dark:hover:bg-[#002570] text-white rounded-2xl text-sm font-medium transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="w-[160px] py-2 cursor-pointer bg-[#00308F] hover:bg-[#002570] text-white rounded-2xl text-sm font-medium transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
                   aria-label={isSubmitting ? "Opening Email" : "Send Message"}
                 >
                   {isSubmitting ? (
@@ -296,7 +296,7 @@ const Contact = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-white shadow-sm border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 flex flex-col h-[400px] p-4"
+            className="bg-white shadow-sm border border-gray-300 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 flex flex-col h-[400px] p-4"
           >
             <img
               src={assets.shop1}
@@ -305,10 +305,10 @@ const Contact = () => {
             />
             <div className="flex flex-col justify-between flex-grow mt-2">
               <div>
-                <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
                   Visit Our Store
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <p className="text-sm text-gray-800 mb-2">
                   Come browse our physical collection at our flagship store in
                   Story City.
                 </p>
@@ -317,7 +317,7 @@ const Contact = () => {
                 href="https://maps.app.goo.gl/c9aXiLstVma81ytg8"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 w-[160px] py-2 bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600 text-white rounded-2xl text-sm font-medium transition-all duration-300 text-center"
+                className="mt-2 w-[160px] py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl text-sm font-medium transition-all duration-300 text-center"
               >
                 Get Directions
               </a>

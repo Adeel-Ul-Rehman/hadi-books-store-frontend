@@ -260,7 +260,7 @@ const ResetPassword = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 dark:from-gray-800 dark:via-gray-900 dark:to-black flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-['Poppins',sans-serif]"
+      className="min-h-screen bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-['Poppins',sans-serif]"
     >
       <div className="max-w-md w-full space-y-8">
         <motion.div
@@ -270,13 +270,13 @@ const ResetPassword = () => {
           className="text-center"
         >
           <Title text1="RESET" text2="PASSWORD" />
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          <p className="mt-2 text-sm text-gray-800">
             {step === "email" && (
               <>
                 Enter your email to receive a password reset OTP.{" "}
                 <Link
                   to="/login"
-                  className="font-medium text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200"
+                  className="font-medium text-gray-800 hover:text-gray-900"
                 >
                   Back to sign in
                 </Link>
@@ -291,7 +291,7 @@ const ResetPassword = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="bg-white shadow-sm border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-4"
+          className="bg-white shadow-sm border border-gray-300 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-4"
         >
           {step === "email" && (
             <form
@@ -302,14 +302,14 @@ const ResetPassword = () => {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-900 dark:text-gray-200"
+                  className="block text-sm font-medium text-gray-900"
                 >
                   Email address
                 </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FiMail
-                      className="h-5 w-5 text-gray-400 dark:text-gray-500"
+                      className="h-5 w-5 text-gray-500"
                       aria-hidden="true"
                     />
                   </div>
@@ -321,7 +321,7 @@ const ResetPassword = () => {
                     required
                     value={email}
                     onChange={handleEmailChange}
-                    className={`focus:ring-[#00308F] focus:border-[#00308F] block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md py-3 border ${
+                    className={`focus:ring-[#00308F] focus:border-[#00308F] block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-3 border text-gray-800 ${
                       emailError ? "border-red-500" : ""
                     }`}
                     placeholder="you@example.com"
@@ -330,7 +330,7 @@ const ResetPassword = () => {
                   />
                   {emailError && (
                     <p
-                      className="mt-1 text-sm text-red-700 dark:text-red-400"
+                      className="mt-1 text-sm text-red-600"
                       id="email-error"
                     >
                       {emailError}
@@ -383,7 +383,7 @@ const ResetPassword = () => {
               onSubmit={handleOtpSubmit}
               aria-label="OTP verification form"
             >
-              <p className="text-sm text-gray-600 dark:text-gray-300 text-center">
+              <p className="text-sm text-gray-800 text-center">
                 Enter the 6-digit OTP sent to {email}.
               </p>
               <div className="flex justify-center gap-2">
@@ -397,10 +397,10 @@ const ResetPassword = () => {
                     onPaste={handlePaste}
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     ref={(el) => (inputRefs.current[index] = el)}
-                    className={`w-10 h-10 text-center text-lg font-semibold border dark:bg-gray-700 dark:text-white rounded-md focus:ring-[#00308F] focus:border-[#00308F] sm:text-sm ${
+                    className={`w-10 h-10 text-center text-lg font-semibold border rounded-md focus:ring-[#00308F] focus:border-[#00308F] sm:text-sm text-gray-800 ${
                       otpError
                         ? "border-red-500"
-                        : "border-gray-300 dark:border-gray-600"
+                        : "border-gray-300"
                     }`}
                     placeholder="0"
                     aria-invalid={!!otpError}
@@ -411,7 +411,7 @@ const ResetPassword = () => {
               </div>
               {otpError && (
                 <p
-                  className="text-sm text-red-700 dark:text-red-400 text-center"
+                  className="text-sm text-red-600 text-center"
                   id="otp-error"
                 >
                   {otpError}
@@ -459,7 +459,7 @@ const ResetPassword = () => {
                   type="button"
                   onClick={handleResendOtp}
                   disabled={resendTimer > 0 || loading}
-                  className="text-sm font-medium text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-sm font-medium text-gray-800 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Resend OTP"
                 >
                   {resendTimer > 0
@@ -478,14 +478,14 @@ const ResetPassword = () => {
               <div>
                 <label
                   htmlFor="newPassword"
-                  className="block text-sm font-medium text-gray-900 dark:text-gray-200"
+                  className="block text-sm font-medium text-gray-900"
                 >
                   New Password
                 </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FiLock
-                      className="h-5 w-5 text-gray-400 dark:text-gray-500"
+                      className="h-5 w-5 text-gray-500"
                       aria-hidden="true"
                     />
                   </div>
@@ -497,7 +497,7 @@ const ResetPassword = () => {
                     required
                     value={newPassword}
                     onChange={handlePasswordChange}
-                    className={`focus:ring-[#00308F] focus:border-[#00308F] block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md py-3 border ${
+                    className={`focus:ring-[#00308F] focus:border-[#00308F] block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-3 border text-gray-800 ${
                       newPasswordError ? "border-red-500" : ""
                     }`}
                     placeholder="••••••••"
@@ -506,7 +506,7 @@ const ResetPassword = () => {
                   />
                   {newPasswordError && (
                     <p
-                      className="mt-1 text-sm text-red-700 dark:text-red-400"
+                      className="mt-1 text-sm text-red-600"
                       id="newPassword-error"
                     >
                       {newPasswordError}
@@ -517,14 +517,14 @@ const ResetPassword = () => {
               <div>
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-900 dark:text-gray-200"
+                  className="block text-sm font-medium text-gray-900"
                 >
                   Confirm Password
                 </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FiLock
-                      className="h-5 w-5 text-gray-400 dark:text-gray-500"
+                      className="h-5 w-5 text-gray-500"
                       aria-hidden="true"
                     />
                   </div>
@@ -536,7 +536,7 @@ const ResetPassword = () => {
                     required
                     value={confirmPassword}
                     onChange={handlePasswordChange}
-                    className={`focus:ring-[#00308F] focus:border-[#00308F] block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md py-3 border ${
+                    className={`focus:ring-[#00308F] focus:border-[#00308F] block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-3 border text-gray-800 ${
                       confirmPasswordError ? "border-red-500" : ""
                     }`}
                     placeholder="••••••••"
@@ -545,7 +545,7 @@ const ResetPassword = () => {
                   />
                   {confirmPasswordError && (
                     <p
-                      className="mt-1 text-sm text-red-700 dark:text-red-400"
+                      className="mt-1 text-sm text-red-600"
                       id="confirmPassword-error"
                     >
                       {confirmPasswordError}

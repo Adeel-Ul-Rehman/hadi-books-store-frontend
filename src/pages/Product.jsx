@@ -122,7 +122,7 @@ const Product = () => {
           Added to cart:{" "}
           <span className="font-semibold">{productData.name}</span>
           {selectedFormat && (
-            <span className="text-gray-600"> ({selectedFormat})</span>
+            <span className="text-gray-800"> ({selectedFormat})</span>
           )}
         </div>
       );
@@ -168,14 +168,14 @@ const Product = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+        className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100"
       >
         <div className="bg-white rounded-xl shadow-md p-12 text-center">
           <h3 className="text-xl font-medium text-gray-900 mb-2">Error</h3>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <p className="text-gray-800 mb-6">{error}</p>
           <button
             onClick={() => navigate("/collections")}
-            className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+            className="px-6 py-3 bg-[#00308F] text-white rounded-lg hover:bg-[#002570] transition-colors"
           >
             Browse Collections
           </button>
@@ -190,11 +190,11 @@ const Product = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+        className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100"
       >
         <div className="text-center">
-          <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
-          <p className="text-gray-600 mt-2">Loading product...</p>
+          <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-[#00308F] rounded-full animate-spin"></div>
+          <p className="text-gray-800 mt-2">Loading product...</p>
         </div>
       </motion.div>
     );
@@ -206,18 +206,18 @@ const Product = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+        className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100"
       >
         <div className="bg-white rounded-xl shadow-md p-12 text-center">
           <h3 className="text-xl font-medium text-gray-900 mb-2">
             Product Not Found
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-800 mb-6">
             The product you’re looking for is not available.
           </p>
           <button
             onClick={() => navigate("/collections")}
-            className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+            className="px-6 py-3 bg-[#00308F] text-white rounded-lg hover:bg-[#002570] transition-colors"
           >
             Browse Collections
           </button>
@@ -230,7 +230,7 @@ const Product = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 font-['Poppins',sans-serif]"
+      className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 font-['Poppins',sans-serif]"
     >
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumbs */}
@@ -239,7 +239,7 @@ const Product = () => {
             <li className="inline-flex items-center">
               <button
                 onClick={() => navigate("/")}
-                className="inline-flex items-center text-gray-700 hover:text-black transition-colors"
+                className="inline-flex items-center text-gray-800 hover:text-gray-900 transition-colors"
               >
                 <svg
                   className="w-4 h-4 mr-2"
@@ -266,7 +266,7 @@ const Product = () => {
                 </svg>
                 <button
                   onClick={() => navigate("/collections")}
-                  className="ml-1 text-gray-700 hover:text-black transition-colors"
+                  className="ml-1 text-gray-800 hover:text-gray-900 transition-colors"
                 >
                   Collections
                 </button>
@@ -281,11 +281,11 @@ const Product = () => {
                 >
                   <path
                     fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0医保0 1.414l-4 4a1 1 0 01-1.414 0z"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="ml-1 text-gray-600 truncate max-w-[150px] sm:max-w-[200px]">
+                <span className="ml-1 text-gray-800 truncate max-w-[150px] sm:max-w-[200px]">
                   {productData.name}
                 </span>
               </div>
@@ -327,7 +327,7 @@ const Product = () => {
                   }}
                 />
                 {productData.bestseller && (
-                  <div className="absolute top-2 left-2 bg-black text-white px-2 py-1 rounded-lg text-xs font-semibold">
+                  <div className="absolute top-2 left-2 bg-[#00308F] text-white px-2 py-1 rounded-lg text-xs font-semibold">
                     BESTSELLER
                   </div>
                 )}
@@ -346,11 +346,11 @@ const Product = () => {
               >
                 {productData.name}
               </motion.h1>
-              <div className="mt-1 flex items-center space-x-2 text-sm text-gray-600">
+              <div className="mt-1 flex items-center space-x-2 text-sm text-gray-800">
                 <span className="capitalize">{productData.category}</span>
                 {productData.subCategory && (
                   <>
-                    <span className="text-gray-300">|</span>
+                    <span className="text-gray-400">|</span>
                     <span className="capitalize">
                       {productData.subCategory}
                     </span>
@@ -381,7 +381,7 @@ const Product = () => {
                   </svg>
                 ))}
               </div>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-800">
                 {averageRating.toFixed(1)} ({totalReviews} reviews)
               </span>
             </motion.div>
@@ -415,7 +415,7 @@ const Product = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="prose prose-sm max-w-none text-gray-700"
+              className="prose prose-sm max-w-none text-gray-800"
             >
               <p className="line-clamp-3">{productData.description}</p>
             </motion.div>
@@ -436,8 +436,8 @@ const Product = () => {
                       whileTap={{ scale: 0.95 }}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
                         selectedFormat === format
-                          ? "bg-black text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          ? "bg-[#00308F] text-white"
+                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                       }`}
                     >
                       {format}
@@ -453,7 +453,7 @@ const Product = () => {
               transition={{ delay: 0.6 }}
               className="flex items-center space-x-2 pt-2"
             >
-              <div className="flex items-center border border-gray-200 rounded-lg">
+              <div className="flex items-center border border-gray-300 rounded-lg">
                 <button
                   onClick={() => handleQuantityChange(-1)}
                   className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors"
@@ -492,7 +492,7 @@ const Product = () => {
                   </svg>
                 </button>
               </div>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-800">
                 {quantity === 10 ? "Max quantity reached" : "Max 10 per order"}
               </span>
             </motion.div>
@@ -505,7 +505,7 @@ const Product = () => {
             >
               <button
                 onClick={handleAddToCart}
-                className="px-5 py-2 cursor-pointer bg-gradient-to-r from-red-400 to-orange-500 text-white font-semibold rounded-lg shadow-md hover:from-red-500 hover:to-orange-600 transition-all duration-300 hover:shadow-lg text-center"
+                className="px-5 py-2 cursor-pointer bg-[#00308F] text-white font-semibold rounded-lg shadow-md hover:bg-[#002570] transition-all duration-300 hover:shadow-lg text-center"
               >
                 Add to Cart
               </button>
@@ -552,7 +552,7 @@ const Product = () => {
                 </svg>
                 <div>
                   <h4 className="font-medium text-gray-900">Free Delivery</h4>
-                  <p className="text-gray-600">
+                  <p className="text-gray-800">
                     Available for most locations. Delivery in 3-5 business days.
                   </p>
                 </div>
@@ -573,7 +573,7 @@ const Product = () => {
                 </svg>
                 <div>
                   <h4 className="font-medium text-gray-900">Easy Returns</h4>
-                  <p className="text-gray-600">
+                  <p className="text-gray-800">
                     7-day return policy. No questions asked.
                   </p>
                 </div>
@@ -584,14 +584,14 @@ const Product = () => {
 
         {/* Product Details Tabs */}
         <div className="mt-8">
-          <div className="border-b border-gray-200">
+          <div className="border-b border-gray-300">
             <nav className="flex space-x-6">
               <button
                 onClick={() => handleTabChange("Description")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "Description"
-                    ? "border-black text-black"
-                    : "border-transparent text-gray-600 hover:text-black hover:border-gray-300"
+                    ? "border-[#00308F] text-[#00308F]"
+                    : "border-transparent text-gray-800 hover:text-gray-900 hover:border-gray-300"
                 }`}
               >
                 Description
@@ -600,8 +600,8 @@ const Product = () => {
                 onClick={() => handleTabChange("Specifications")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "Specifications"
-                    ? "border-black text-black"
-                    : "border-transparent text-gray-600 hover:text-black hover:border-gray-300"
+                    ? "border-[#00308F] text-[#00308F]"
+                    : "border-transparent text-gray-800 hover:text-gray-900 hover:border-gray-300"
                 }`}
               >
                 Specifications
@@ -610,8 +610,8 @@ const Product = () => {
                 onClick={() => handleTabChange("Reviews")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "Reviews"
-                    ? "border-black text-black"
-                    : "border-transparent text-gray-600 hover:text-black hover:border-gray-300"
+                    ? "border-[#00308F] text-[#00308F]"
+                    : "border-transparent text-gray-800 hover:text-gray-900 hover:border-gray-300"
                 }`}
               >
                 Reviews ({totalReviews})
@@ -624,9 +624,9 @@ const Product = () => {
                 <h3 className="text-lg font-medium text-gray-900">
                   About this item
                 </h3>
-                <p className="text-gray-700">{productData.description}</p>
+                <p className="text-gray-800">{productData.description}</p>
                 {productData.details && (
-                  <ul className="mt-2 space-y-1 text-gray-700">
+                  <ul className="mt-2 space-y-1 text-gray-800">
                     {productData.details.split("\n").map((item, index) => (
                       <li key={index} className="flex items-start">
                         <svg
@@ -654,7 +654,7 @@ const Product = () => {
                 <h3 className="text-lg font-medium text-gray-900">
                   Specifications
                 </h3>
-                <ul className="mt-2 space-y-1 text-gray-700">
+                <ul className="mt-2 space-y-1 text-gray-800">
                   <li>
                     <strong>Author:</strong> {productData.author}
                   </li>
@@ -724,7 +724,7 @@ const Product = () => {
                 ))}
             </div>
           ) : (
-            <p className="text-center text-gray-600">
+            <p className="text-center text-gray-800">
               No related products available.
             </p>
           )}

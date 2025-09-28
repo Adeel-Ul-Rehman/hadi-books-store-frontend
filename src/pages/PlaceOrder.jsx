@@ -81,14 +81,6 @@ const PlaceOrder = () => {
           total: result.total,
           items: result.items,
         });
-      } else {
-        // Suppress toast for empty cart after order placement
-        if (!orderPlaced) {
-          toast.error(result.message || "Failed to calculate totals", {
-            position: "top-center",
-            autoClose: 3000,
-          });
-        }
       }
     };
     calculateTotals();

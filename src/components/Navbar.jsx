@@ -71,9 +71,9 @@ const Navbar = () => {
               className={({ isActive }) =>
                 `text-base font-semibold transition-colors duration-300 ${
                   isActive
-                    ? "text-red-500 underline underline-offset-4 decoration-2"
+                    ? "text-[#00308F] underline underline-offset-4 decoration-2"
                     : "text-gray-800 hover:text-" +
-                      ["sky-600", "orange-600", "red-600", "blue-600"][index]
+                      ["sky-600", "orange-600", "blue-600", "teal-600"][index]
                 }`
               }
               aria-label={item.label}
@@ -83,20 +83,20 @@ const Navbar = () => {
           ))}
         </div>
 
-  {/* Right Icons - reduce gap */}
-  <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+        {/* Right Icons - reduce gap */}
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           {/* Search */}
           <SearchBar isNavbar={true} />
 
           {/* Wishlist */}
           <button
-            className="relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#00308F] focus:ring-offset-2"
             onClick={() => navigate("/wishlist")}
             aria-label="View wishlist"
           >
-            <FiHeart className="w-5 h-5 text-gray-800 hover:text-red-500 transition-colors" />
+            <FiHeart className="w-5 h-5 text-gray-800 hover:text-[#00308F] transition-colors" />
             {getWishlistCount() > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="absolute -top-2 -right-2 bg-[#00308F] text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                 {getWishlistCount()}
               </span>
             )}
@@ -104,13 +104,13 @@ const Navbar = () => {
 
           {/* Cart */}
           <button
-            className="relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#00308F] focus:ring-offset-2"
             onClick={() => navigate("/cart")}
             aria-label="View cart"
           >
             <img src={assets.cart_icon} alt="Cart" className="w-6 h-6" />
             {getCartCount() > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="absolute -top-2 -right-2 bg-[#00308F] text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                 {getCartCount()}
               </span>
             )}
@@ -128,7 +128,7 @@ const Navbar = () => {
             }
           >
             <button
-              className="focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded-full"
+              className="focus:outline-none focus:ring-2 focus:ring-[#00308F] focus:ring-offset-2 rounded-full"
               aria-label="Profile menu"
             >
               {user ? (
@@ -136,14 +136,14 @@ const Navbar = () => {
                   <img
                     src={`${user.profilePicture}?t=${Date.now()}`}
                     alt="Profile"
-                    className="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-[#00308F] transition-colors"
                     onError={(e) =>
                       (e.target.src =
                         "https://via.placeholder.com/40?text=User")
                     }
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-semibold border-2 border-gray-300 hover:border-red-500 transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-[#00308F] flex items-center justify-center text-white font-semibold border-2 border-gray-300 hover:border-[#002570] transition-colors">
                     {getUserInitial()}
                   </div>
                 )
@@ -158,7 +158,7 @@ const Navbar = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
-                  className="profile-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100"
+                  className="profile-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-300"
                   onMouseEnter={() => setShowProfileMenu(true)}
                   onMouseLeave={handleProfileMouseLeave}
                 >
@@ -166,7 +166,7 @@ const Navbar = () => {
                     <>
                       <NavLink
                         to="/account"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="flex items-center px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 transition-colors"
                         onClick={() => {
                           setShowProfileMenu(false);
                           setMobileMenuOpen(false);
@@ -178,7 +178,7 @@ const Navbar = () => {
                       </NavLink>
                       <NavLink
                         to="/orders"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="flex items-center px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 transition-colors"
                         onClick={() => {
                           setShowProfileMenu(false);
                           setMobileMenuOpen(false);
@@ -190,7 +190,7 @@ const Navbar = () => {
                       </NavLink>
                       <button
                         onClick={handleLogout}
-                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 transition-colors"
                         aria-label="Logout"
                       >
                         <FiLogOut className="w-4 h-4 mr-2" />
@@ -201,7 +201,7 @@ const Navbar = () => {
                     <>
                       <NavLink
                         to="/login"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="flex items-center px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 transition-colors"
                         onClick={() => {
                           setShowProfileMenu(false);
                           setMobileMenuOpen(false);
@@ -213,7 +213,7 @@ const Navbar = () => {
                       </NavLink>
                       <NavLink
                         to="/register"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="flex items-center px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 transition-colors"
                         onClick={() => {
                           setShowProfileMenu(false);
                           setMobileMenuOpen(false);
@@ -232,7 +232,7 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden flex items-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 p-1"
+            className="md:hidden flex items-center focus:outline-none focus:ring-2 focus:ring-[#00308F] focus:ring-offset-2 p-1"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Toggle mobile menu"
           >
@@ -269,7 +269,7 @@ const Navbar = () => {
               className="fixed right-0 top-0 h-full w-80 max-w-[85vw] bg-gradient-to-b from-white to-gray-50 shadow-2xl z-50 flex flex-col"
             >
               {/* Header with Close Button */}
-              <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-white">
+              <div className="flex justify-between items-center p-6 border-b border-gray-300 bg-white">
                 <div className="flex items-center">
                   <img
                     src="/logo.png"
@@ -283,7 +283,7 @@ const Navbar = () => {
                   className="p-2 rounded-full hover:bg-gray-100 transition duration-200"
                   aria-label="Close menu"
                 >
-                  <FiX className="w-6 h-6 text-gray-600" />
+                  <FiX className="w-6 h-6 text-gray-800" />
                 </button>
               </div>
 
@@ -301,13 +301,13 @@ const Navbar = () => {
                       className={({ isActive }) =>
                         `flex items-center w-full px-4 py-3 rounded-xl transition-all duration-200 ${
                           isActive
-                            ? "bg-gradient-to-r from-red-50 to-orange-50 text-red-600 shadow-sm border border-red-100"
-                            : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                            ? "bg-gradient-to-r from-blue-50 to-gray-50 text-[#00308F] shadow-sm border border-gray-300"
+                            : "text-gray-800 hover:bg-gray-50 hover:text-gray-900"
                         }`
                       }
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <span className="mr-3 text-red-500">{item.icon}</span>
+                      <span className="mr-3 text-[#00308F]">{item.icon}</span>
                       <span className="font-medium">{item.label}</span>
                     </NavLink>
                   ))}
@@ -322,25 +322,25 @@ const Navbar = () => {
                     <>
                       <NavLink
                         to="/account"
-                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition duration-200"
+                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 transition duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <FiUser className="w-5 h-5 mr-3 text-blue-500" />
+                        <FiUser className="w-5 h-5 mr-3 text-[#00308F]" />
                         <span className="font-medium">My Account</span>
                       </NavLink>
                       <NavLink
                         to="/orders"
-                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition duration-200"
+                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 transition duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <FiShoppingBag className="w-5 h-5 mr-3 text-green-500" />
+                        <FiShoppingBag className="w-5 h-5 mr-3 text-[#00308F]" />
                         <span className="font-medium">My Orders</span>
                       </NavLink>
                       <button
                         onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition duration-200"
+                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 transition duration-200"
                       >
-                        <FiLogOut className="w-5 h-5 mr-3 text-red-500" />
+                        <FiLogOut className="w-5 h-5 mr-3 text-[#00308F]" />
                         <span className="font-medium">Logout</span>
                       </button>
                     </>
@@ -348,18 +348,18 @@ const Navbar = () => {
                     <>
                       <NavLink
                         to="/login"
-                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition duration-200"
+                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 transition duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <FiUser className="w-5 h-5 mr-3 text-blue-500" />
+                        <FiUser className="w-5 h-5 mr-3 text-[#00308F]" />
                         <span className="font-medium">Login</span>
                       </NavLink>
                       <NavLink
                         to="/register"
-                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition duration-200"
+                        className="flex items-center w-full px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 transition duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <FiUser className="w-5 h-5 mr-3 text-green-500" />
+                        <FiUser className="w-5 h-5 mr-3 text-[#00308F]" />
                         <span className="font-medium">Register</span>
                       </NavLink>
                     </>
@@ -368,7 +368,7 @@ const Navbar = () => {
               </div>
 
               {/* Footer with WhatsApp */}
-              <div className="p-6 border-t border-gray-200 bg-white">
+              <div className="p-6 border-t border-gray-300 bg-white">
                 <a
                   href="https://wa.me/923090005634"
                   target="_blank"

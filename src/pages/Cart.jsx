@@ -73,7 +73,7 @@ const Cart = () => {
     if (item.image) {
       if (Array.isArray(item.image) && item.image.length > 0)
         return item.image[0];
-      else if (typeof item.image === "string" && item.image.trim() !== "")
+      else if (typeof image === "string" && image.trim() !== "")
         return item.image;
     }
     return "https://placehold.co/300x300?text=Book+Image";
@@ -141,7 +141,7 @@ const Cart = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen py-8 px-4 sm:px-6 font-['Poppins',sans-serif]"
+      className="min-h-screen py-8 px-4 sm:px-6 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 font-['Poppins',sans-serif]"
     >
       <div className="max-w-7xl mx-auto">
         <motion.div
@@ -159,8 +159,8 @@ const Cart = () => {
             animate={{ opacity: 1 }}
             className="text-center py-8"
           >
-            <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
-            <p className="text-gray-600 mt-2">Loading cart...</p>
+            <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-[#00308F] rounded-full animate-spin"></div>
+            <p className="text-gray-800 mt-2">Loading cart...</p>
           </motion.div>
         )}
 
@@ -180,12 +180,12 @@ const Cart = () => {
               <h2 className="text-2xl font-semibold mb-2 text-gray-900">
                 Your cart is empty
               </h2>
-              <p className="text-gray-600 mb-8 max-w-md">
+              <p className="text-gray-800 mb-8 max-w-md">
                 Looks like you haven't added anything to your cart yet
               </p>
               <button
                 onClick={() => navigate("/collections")}
-                className="px-6 py-3 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-all duration-300 flex items-center gap-2"
+                className="px-6 py-3 bg-[#00308F] text-white font-medium rounded-lg hover:bg-[#002570] transition-all duration-300 flex items-center gap-2"
               >
                 Continue Shopping <FiChevronRight />
               </button>
@@ -216,7 +216,7 @@ const Cart = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ delay: index * 0.1 }}
-                        className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center justify-between p-4"
+                        className="bg-white rounded-2xl shadow-sm border border-gray-300 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center justify-between p-4"
                       >
                         <div className="flex items-center gap-4">
                           <img
@@ -227,13 +227,13 @@ const Cart = () => {
                             loading="lazy"
                           />
                           <div>
-                            <p className="text-sm font-medium text-gray-800">
+                            <p className="text-sm font-medium text-gray-900">
                               {item.product?.name ||
                                 item.name ||
                                 "Unknown Product"}
                             </p>
                             <div className="flex items-center space-x-2">
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-gray-800">
                                 {currency}
                                 {(
                                   item.product?.price ||
@@ -242,7 +242,7 @@ const Cart = () => {
                                 ).toFixed(2)}
                               </p>
                               {item.product?.originalPrice && (
-                                <p className="text-xs text-gray-500 line-through">
+                                <p className="text-xs text-gray-600 line-through">
                                   {currency}
                                   {(
                                     item.product?.originalPrice ||
@@ -253,7 +253,7 @@ const Cart = () => {
                               )}
                             </div>
                             {item.format && (
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-gray-800">
                                 Format:{" "}
                                 <span className="font-medium">
                                   {item.format}
@@ -304,7 +304,7 @@ const Cart = () => {
                             onClick={() =>
                               handleRemoveItem(item.productId, item.format)
                             }
-                            className="text-red-500 hover:text-red-700 transition-colors"
+                            className="text-red-600 hover:text-red-800 transition-colors"
                             aria-label={`Remove ${
                               item.product?.name || item.name
                             } from cart`}
@@ -325,34 +325,34 @@ const Cart = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg p-6 flex flex-col gap-4 sticky top-6 max-h-[400px]"
+                className="bg-white rounded-2xl shadow-sm border border-gray-300 hover:shadow-lg p-6 flex flex-col gap-4 sticky top-6 max-h-[400px]"
               >
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
                   Order Summary
                 </h2>
                 <div className="space-y-2 flex-1">
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-gray-800">
                     <span>Subtotal</span>
                     <span>
                       {currency}
                       {calculateSubtotal()}
                     </span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-gray-800">
                     <span>Tax ({(TAX_RATE * 100).toFixed(0)}%)</span>
                     <span>
                       {currency}
                       {(calculateSubtotal() * TAX_RATE).toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-gray-800">
                     <span>Shipping</span>
                     <span>
                       {currency}
                       {cartData.length > 0 ? SHIPPING_FEE.toFixed(2) : "0.00"}
                     </span>
                   </div>
-                  <div className="flex justify-between font-bold text-gray-900 text-lg pt-2 border-t border-gray-200">
+                  <div className="flex justify-between font-bold text-gray-900 text-lg pt-2 border-t border-gray-300">
                     <span>Total</span>
                     <span>
                       {currency}
@@ -368,7 +368,7 @@ const Cart = () => {
                       navigate("/place-order");
                     }
                   }}
-                  className="w-full py-3 mt-2 text-white font-semibold rounded-xl bg-gradient-to-r from-red-400 to-orange-500 hover:from-red-500 hover:to-orange-600 transition-all duration-300"
+                  className="w-full py-3 mt-2 text-white font-semibold rounded-xl bg-[#00308F] hover:bg-[#002570] transition-all duration-300"
                   aria-label="Proceed to checkout"
                   disabled={loading || cartData.length === 0}
                 >
@@ -383,14 +383,14 @@ const Cart = () => {
                     transition={{ duration: 0.3 }}
                     className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
                   >
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-w-md w-full">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-300 p-6 max-w-md w-full">
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-semibold text-gray-900">
                           Log In Required
                         </h3>
                         <button
                           onClick={() => setShowLoginModal(false)}
-                          className="text-gray-600 hover:text-gray-900 transition-colors"
+                          className="text-gray-800 hover:text-gray-900 transition-colors"
                         >
                           <svg
                             className="w-6 h-6"
@@ -408,20 +408,20 @@ const Cart = () => {
                           </svg>
                         </button>
                       </div>
-                      <p className="text-gray-600 mb-6">
+                      <p className="text-gray-800 mb-6">
                         Please log in or register to proceed with checkout and
                         place your order.
                       </p>
                       <div className="flex items-center justify-center gap-4">
                         <button
                           onClick={() => navigate("/login?redirect=/cart")}
-                          className="px-8 py-3 cursor-pointer bg-gradient-to-r from-red-400 to-orange-500 text-white font-semibold rounded-lg shadow-md hover:from-red-500 hover:to-orange-600 transition-all duration-300 hover:shadow-lg text-center"
+                          className="px-8 py-3 bg-[#00308F] text-white font-semibold rounded-lg shadow-md hover:bg-[#002570] transition-all duration-300 text-center"
                         >
                           Log In
                         </button>
                         <button
                           onClick={() => navigate("/register?redirect=/login")}
-                          className="px-6 py-3 cursor-pointer bg-[#00308F] text-white font-semibold rounded-lg shadow-md hover:bg-[#002266] transition-all duration-300 hover:shadow-lg text-center"
+                          className="px-6 py-3 bg-[#00308F] text-white font-semibold rounded-lg shadow-md hover:bg-[#002570] transition-all duration-300 text-center"
                         >
                           Register
                         </button>
@@ -432,7 +432,7 @@ const Cart = () => {
                 <div className="mt-4 text-center">
                   <button
                     onClick={() => navigate("/collections")}
-                    className="text-sm text-gray-600 hover:text-black transition-colors"
+                    className="text-sm text-gray-800 hover:text-gray-900 transition-colors"
                     aria-label="Continue shopping"
                   >
                     Continue Shopping{" "}
@@ -466,7 +466,7 @@ const Cart = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -50 }}
-                      className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:scale-105 min-h-[220px] sm:min-h-[260px] w-full flex flex-col"
+                      className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-300 hover:scale-105 min-h-[220px] sm:min-h-[260px] w-full flex flex-col"
                     >
                       <div className="relative w-full h-40 sm:h-56">
                         <img
@@ -481,10 +481,10 @@ const Cart = () => {
                         />
                       </div>
                       <div className="flex-1 flex flex-col p-3 sm:p-4">
-                        <p className="text-xs text-gray-500 capitalize line-clamp-1 overflow-hidden text-ellipsis max-w-full">
+                        <p className="text-xs text-gray-800 capitalize line-clamp-1 overflow-hidden text-ellipsis max-w-full">
                           {item.category}
                         </p>
-                        <h3 className="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-1 overflow-hidden text-ellipsis max-w-full mt-1">
+                        <h3 className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-1 overflow-hidden text-ellipsis max-w-full mt-1">
                           {item.name}
                         </h3>
                         <div className="flex items-center space-x-1 mt-1 shrink-0 max-w-full overflow-hidden">
@@ -492,7 +492,7 @@ const Cart = () => {
                             {currency}{item.price.toFixed(2)}
                           </p>
                           {item.originalPrice && (
-                            <p className="text-xs text-gray-500 line-through whitespace-nowrap">
+                            <p className="text-xs text-gray-600 line-through whitespace-nowrap">
                               {currency}{item.originalPrice.toFixed(2)}
                             </p>
                           )}
@@ -502,7 +502,7 @@ const Cart = () => {
                             handleAddToCart(item.id, item.sizes?.[0] || null, 1)
                           }
                           whileTap={{ scale: 0.95 }}
-                          className="w-full mt-3 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-gradient-to-r from-red-400 to-orange-500 hover:from-red-500 hover:to-orange-600 text-white transition-transform duration-300 flex items-center justify-center"
+                          className="w-full mt-3 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-[#00308F] hover:bg-[#002570] text-white transition-transform duration-300 flex items-center justify-center"
                           disabled={loading}
                         >
                           <FiShoppingCart className="w-3 h-3 inline-block mr-1" />

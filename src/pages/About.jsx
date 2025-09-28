@@ -34,7 +34,7 @@ const About = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 dark:from-gray-800 dark:via-gray-900 dark:to-black"
+      className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100"
     >
       <div className="max-w-7xl mx-auto">
         {/* Hero Section */}
@@ -44,7 +44,7 @@ const About = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mt-4 text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto"
+            className="mt-4 text-lg text-gray-800 max-w-3xl mx-auto"
           >
             At Hadi Books Store, we believe every book is a doorway ✨ to
             knowledge, to imagination, and to worlds waiting to be discovered.
@@ -59,17 +59,17 @@ const About = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-white shadow-sm border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-6 flex flex-col justify-center h-96"
+            className="bg-white shadow-sm border border-gray-300 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-6 flex flex-col justify-center h-96"
           >
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-200 mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">
               Our Mission
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-gray-800 mb-4">
               To connect readers with books that inspire, educate, and
               entertain. We believe in the transformative power of reading and
               strive to make quality literature accessible to everyone.
             </p>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-800">
               Our carefully curated selection includes everything from timeless
               classics to contemporary bestsellers, ensuring there's something
               for every type of reader.
@@ -82,7 +82,7 @@ const About = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="relative bg-white shadow-sm border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 h-96"
+            className="relative bg-white shadow-sm border border-gray-300 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 h-96"
           >
             <img
               src={assets.shop}
@@ -99,7 +99,7 @@ const About = () => {
 
         {/* Values Section */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-gray-200 mb-12">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
             Our Values
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -129,13 +129,13 @@ const About = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white shadow-sm border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-6"
+                className="bg-white shadow-sm border border-gray-300 rounded-2xl overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 p-6"
               >
                 <div className="text-4xl mb-4">{value.icon}</div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-200 mb-2">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
                   {value.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-gray-800">
                   {value.description}
                 </p>
               </motion.div>
@@ -145,7 +145,7 @@ const About = () => {
 
         {/* Team Section */}
         <div>
-          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-gray-200 mb-12">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
             Meet Our Team
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">

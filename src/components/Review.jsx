@@ -111,7 +111,7 @@ const Review = ({ productId, isAuthenticated }) => {
   return (
     <div className="space-y-6">
       {/* Reviews Summary */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-300">
         <h2 className="text-xl font-bold text-gray-900 mb-3">
           Customer Reviews
         </h2>
@@ -137,13 +137,13 @@ const Review = ({ productId, isAuthenticated }) => {
                   </svg>
                 ))}
               </div>
-              <p className="text-gray-600 text-sm mt-1">
+              <p className="text-gray-800 text-sm mt-1">
                 Based on {totalReviews} reviews
               </p>
             </div>
           </div>
         ) : (
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-800 text-sm">
             No reviews yet. Be the first to review this product!
           </p>
         )}
@@ -155,14 +155,14 @@ const Review = ({ productId, isAuthenticated }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white p-4 rounded-xl shadow-sm border border-gray-200"
+          className="bg-white p-4 rounded-xl shadow-sm border border-gray-300"
         >
           <h3 className="text-base font-medium text-gray-900 mb-3">
             Write a Review
           </h3>
           <form onSubmit={handleSubmitReview} className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-800 mb-2">
                 Rating
               </label>
               <div className="flex space-x-1">
@@ -189,7 +189,7 @@ const Review = ({ productId, isAuthenticated }) => {
             <div>
               <label
                 htmlFor="comment"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-gray-800 mb-2"
               >
                 Comment
               </label>
@@ -198,14 +198,14 @@ const Review = ({ productId, isAuthenticated }) => {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={3}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00308F] focus:border-transparent text-sm"
                 placeholder="Share your thoughts about the product..."
               />
             </div>
             <button
               type="submit"
               disabled={submitting}
-              className={`px-5 py-2 cursor-pointer bg-[#00308F] text-white font-semibold rounded-lg shadow-md hover:bg-[#002266] transition-all duration-300 hover:shadow-lg text-center ${
+              className={`px-5 py-2 bg-[#00308F] text-white font-semibold rounded-lg shadow-md hover:bg-[#002570] transition-all duration-300 hover:shadow-lg text-center ${
                 submitting ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
@@ -214,12 +214,12 @@ const Review = ({ productId, isAuthenticated }) => {
           </form>
         </motion.div>
       ) : (
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-center">
-          <p className="text-gray-700 text-sm">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-300 text-center">
+          <p className="text-gray-800 text-sm">
             Please{" "}
             <button
               onClick={() => (window.location.href = "/login")}
-              className="text-blue-600 hover:underline font-medium"
+              className="text-[#00308F] hover:text-[#002570] font-medium hover:underline"
             >
               log in
             </button>{" "}
@@ -241,7 +241,7 @@ const Review = ({ productId, isAuthenticated }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white p-4 rounded-xl shadow-sm border border-gray-200"
+                className="bg-white p-4 rounded-xl shadow-sm border border-gray-300"
               >
                 <div className="flex items-start space-x-3">
                   {review.user.profilePicture ? (
@@ -252,7 +252,7 @@ const Review = ({ productId, isAuthenticated }) => {
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm font-medium text-gray-800">
                         {review.user.name
                           ? review.user.name.charAt(0).toUpperCase()
                           : "U"}
@@ -282,12 +282,12 @@ const Review = ({ productId, isAuthenticated }) => {
                           ))}
                         </div>
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-800">
                         {new Date(review.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                     {review.comment && (
-                      <p className="mt-2 text-gray-700 text-sm">{review.comment}</p>
+                      <p className="mt-2 text-gray-800 text-sm">{review.comment}</p>
                     )}
                   </div>
                 </div>
@@ -300,7 +300,7 @@ const Review = ({ productId, isAuthenticated }) => {
                 <button
                   onClick={handleLoadMore}
                   disabled={loadingReviews}
-                  className={`px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm ${
+                  className={`px-4 py-2 bg-gray-100 text-gray-800 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm ${
                     loadingReviews ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
@@ -316,13 +316,13 @@ const Review = ({ productId, isAuthenticated }) => {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="h-6 w-6 rounded-full border-3 border-gray-300 border-t-black"
+              className="h-6 w-6 rounded-full border-3 border-gray-300 border-t-[#00308F]"
             />
           </div>
         )}
 
         {!loadingReviews && reviews.length === 0 && (
-          <p className="text-gray-600 text-sm text-center py-6">
+          <p className="text-gray-800 text-sm text-center py-6">
             No reviews yet. Be the first to review this product!
           </p>
         )}
