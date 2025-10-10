@@ -20,7 +20,7 @@ const AppContextProvider = ({ children }) => {
 
   // Configure Axios default settings
   useEffect(() => {
-    axios.defaults.baseURL = import.meta.env.VITE_API_URL || "https://139.59.64.199";
+    axios.defaults.baseURL = import.meta.env.VITE_API_URL || "https://api.hadibookstore.shop/";
     axios.defaults.withCredentials = true;
   }, []);
 
