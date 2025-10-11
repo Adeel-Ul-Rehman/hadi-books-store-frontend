@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 
 export const ShopContext = createContext();
 
-const TAX_RATE = 0.02;
+const TAX_RATE = 0.00;
 const SHIPPING_FEE = 99;
 
 const ShopContextProvider = ({ children }) => {
@@ -16,8 +16,6 @@ const ShopContextProvider = ({ children }) => {
   const [currency] = useState('Rs.');
   const [loading, setLoading] = useState(false);
 
-  // Initialize from localStorage for non-auth users, or fetch for auth users
-  // Always fetch cart/wishlist from server for logged-in user, even if user is restored from localStorage
   useEffect(() => {
     if (!user || !user.id) {
       const localWishlist = JSON.parse(localStorage.getItem('localWishlist') || '[]');
@@ -25,7 +23,6 @@ const ShopContextProvider = ({ children }) => {
       setWishlistItems(localWishlist.map(id => ({ productId: id })));
       setCartItems(localCart);
     } else {
-      // Always fetch from server for logged-in user with valid id
       fetchWishlist();
       fetchCart();
     }
@@ -60,7 +57,7 @@ const ShopContextProvider = ({ children }) => {
   };
 
   const fetchCart = async () => {
-    if (!user) return; // Don't fetch if no user
+    if (!user || !user.id) return;
     
     setLoading(true);
     try {
@@ -79,7 +76,7 @@ const ShopContextProvider = ({ children }) => {
   };
 
   const fetchWishlist = async () => {
-    if (!user) return; // Don't fetch if no user
+    if (!user || !user.id) return;
     
     setLoading(true);
     try {
@@ -107,7 +104,6 @@ const ShopContextProvider = ({ children }) => {
       }
 
       if (!user) {
-        // Optimistically update local cart for guest users
         const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
         const existingItemIndex = localCart.findIndex(item => 
           item.productId === productId && item.format === format
@@ -132,14 +128,12 @@ const ShopContextProvider = ({ children }) => {
           ];
         }
         setCartItems(updatedCart);
-        // Sync to localStorage after UI update
         setTimeout(() => {
           localStorage.setItem('localCart', JSON.stringify(updatedCart));
         }, 0);
         return true;
       }
 
-      // Optimistically update UI for logged-in users
       setCartItems(prev => {
         const existingItemIndex = prev.findIndex(item => item.productId === productId && item.format === format);
         if (existingItemIndex > -1) {
@@ -162,7 +156,6 @@ const ShopContextProvider = ({ children }) => {
           ];
         }
       });
-      // Call API in background, then sync
       apiRequest('post', '/api/cart/add', { productId, quantity })
         .then(data => {
           if (data.success) fetchCart();
@@ -183,7 +176,6 @@ const ShopContextProvider = ({ children }) => {
     let prevCartItems = [...cartItems];
     try {
       if (!user) {
-        // Optimistically update local cart for guest users
         const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
         const updatedCart = localCart.filter(item => 
           !(item.productId === productId && item.format === format)
@@ -195,7 +187,6 @@ const ShopContextProvider = ({ children }) => {
         return true;
       }
 
-      // Optimistically update UI for logged-in users
       setCartItems(prev => prev.filter(item => !(item.productId === productId && item.format === format)));
       apiRequest('delete', '/api/cart/remove', { productId })
         .then(data => {
@@ -217,7 +208,6 @@ const ShopContextProvider = ({ children }) => {
     let prevCartItems = [...cartItems];
     try {
       if (!user) {
-        // Optimistically update local cart for guest users
         const localCart = JSON.parse(localStorage.getItem('localCart') || '[]');
         const updatedCart = localCart.map(item =>
           item.productId === productId && item.format === format ? { ...item, quantity } : item
@@ -229,7 +219,6 @@ const ShopContextProvider = ({ children }) => {
         return true;
       }
 
-      // Optimistically update UI for logged-in users
       setCartItems(prev => prev.map(item =>
         item.productId === productId && item.format === format ? { ...item, quantity } : item
       ));
@@ -259,7 +248,6 @@ const ShopContextProvider = ({ children }) => {
       }
 
       if (!user) {
-        // Optimistically update local wishlist for guest users
         const localWishlist = JSON.parse(localStorage.getItem('localWishlist') || '[]');
         let updatedWishlist;
         if (localWishlist.includes(productId)) {
@@ -279,7 +267,6 @@ const ShopContextProvider = ({ children }) => {
       }
 
       const isInWishlist = wishlistItems.some(item => item.productId === productId);
-      // Optimistically update UI for logged-in users
       if (isInWishlist) {
         setWishlistItems(prev => prev.filter(item => item.productId !== productId));
         apiRequest('delete', '/api/wishlist/remove', { productId })
@@ -314,7 +301,6 @@ const ShopContextProvider = ({ children }) => {
     let prevWishlistItems = [...wishlistItems];
     try {
       if (!user) {
-        // Optimistically update local wishlist for guest users
         const localWishlist = JSON.parse(localStorage.getItem('localWishlist') || '[]');
         const updatedWishlist = localWishlist.filter(id => id !== productId);
         setWishlistItems(updatedWishlist.map(id => ({ productId: id })));
@@ -324,7 +310,6 @@ const ShopContextProvider = ({ children }) => {
         return true;
       }
 
-      // Optimistically update UI for logged-in users
       setWishlistItems(prev => prev.filter(item => item.productId !== productId));
       apiRequest('delete', '/api/wishlist/remove', { productId })
         .then(data => {
@@ -437,6 +422,10 @@ const ShopContextProvider = ({ children }) => {
         }, 0) * TAX_RATE,
         shippingFee: SHIPPING_FEE,
       });
+      if (data.success) {
+        setCartItems([]); // Clear cart items on successful checkout
+        localStorage.removeItem("localCart"); // Clear local storage cart
+      }
       return data;
     } catch (error) {
       console.error('Process Checkout Error:', error);
@@ -466,7 +455,7 @@ const ShopContextProvider = ({ children }) => {
       value={{
         products,
         cartItems,
-        setCartItems, // Added to allow clearing cart
+        setCartItems,
         wishlistItems,
         currency,
         addToCart,

@@ -21,16 +21,88 @@ import AppContextProvider from "./context/AppContext.jsx";
 import ShopContextProvider from "./context/ShopContext.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
-import { useEffect } from "react";
+import GuestCheckout from "./pages/GuestCheckout.jsx";
+import { useEffect, useContext, useRef } from "react";
+import { AppContext } from "./context/AppContext.jsx";
+import { ShopContext } from "./context/ShopContext.jsx";
 
-// Create a wrapper component that uses the context
 const AppContent = () => {
   const location = useLocation();
+  const { isAuthenticated, apiRequest, syncAfterGoogleLogin } = useContext(AppContext);
+  const { fetchCart, fetchWishlist } = useContext(ShopContext);
+  const googleAuthHandled = useRef(false);
 
   useEffect(() => {
-    // This will run after all contexts are properly set up
     console.log("App initialized");
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handleGoogleAuthRedirect = async () => {
+      const urlParams = new URLSearchParams(location.search);
+      const loginSuccess = urlParams.get("login");
+      const source = urlParams.get("source");
+
+      if (loginSuccess === "success" && source === "google" && !googleAuthHandled.current) {
+        googleAuthHandled.current = true;
+        console.log("✅ Google OAuth successful, processing...");
+
+        // Extract local cart/wishlist data from URL parameters
+        let localCart = [];
+        let localWishlist = [];
+        
+        try {
+          const localCartParam = urlParams.get("localCart");
+          const localWishlistParam = urlParams.get("localWishlist");
+          
+          if (localCartParam) {
+            localCart = JSON.parse(localCartParam);
+          }
+          if (localWishlistParam) {
+            localWishlist = JSON.parse(localWishlistParam);
+          }
+        } catch (error) {
+          console.error("❌ Error parsing local data:", error);
+        }
+
+        console.log("📦 Extracted local data for sync:", {
+          cartItems: localCart.length,
+          wishlistItems: localWishlist.length
+        });
+
+        // Clear URL parameters immediately
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+
+        try {
+          // First, check authentication to ensure user is logged in
+          const authData = await isAuthenticated();
+          
+          if (authData.success && authData.user) {
+            console.log("✅ User authenticated, starting sync...");
+            
+            // Sync cart/wishlist with backend
+            if (localCart.length > 0 || localWishlist.length > 0) {
+              await syncAfterGoogleLogin(localCart, localWishlist);
+            } else {
+              console.log("ℹ️ No local data to sync");
+            }
+            
+            // Refresh cart and wishlist from server
+            await fetchCart();
+            await fetchWishlist();
+          } else {
+            console.error("❌ Authentication failed after Google login");
+            toast.error("Authentication failed. Please try again.");
+          }
+        } catch (error) {
+          console.error("❌ Error during Google auth processing:", error);
+          toast.error("Error during login process. Please try again.");
+        }
+      }
+    };
+
+    handleGoogleAuthRedirect();
+  }, [location, isAuthenticated, fetchCart, fetchWishlist, syncAfterGoogleLogin]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-sky-50 via-orange-50 to-red-50 dark:from-gray-800 dark:via-gray-900 dark:to-black">
@@ -51,6 +123,7 @@ const AppContent = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/guest-checkout" element={<GuestCheckout />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/delivery" element={<Delivery />} />
           <Route path="/wishlist" element={<Wishlist />} />

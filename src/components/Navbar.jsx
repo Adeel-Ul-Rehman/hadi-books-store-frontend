@@ -1,5 +1,5 @@
-import React, { useState, useContext } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import React, { useState, useContext, useEffect } from "react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { AppContext } from "../context/AppContext";
 import { ShopContext } from "../context/ShopContext";
@@ -10,10 +10,92 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, logout } = useContext(AppContext);
+  const { user, logout, isAuthenticated, syncAfterGoogleLogin } = useContext(AppContext);
   const { getCartCount, getWishlistCount } = useContext(ShopContext);
+
+  // Check for authentication when location changes (especially after Google OAuth)
+  useEffect(() => {
+    const checkAuthAfterNavigation = async () => {
+      const urlParams = new URLSearchParams(location.search);
+      const loginSuccess = urlParams.get('login');
+      const source = urlParams.get('source');
+      
+      if (loginSuccess === 'success' && source === 'google' && !user) {
+        console.log('\ud83d\udd04 Navbar: Google OAuth detected, checking auth...');
+        // Ensure we have updated auth state first
+        await isAuthenticated();
+
+        // Parse sync info from URL params (added by backend)
+        const cartSynced = urlParams.get('cartSynced');
+        const wishlistSynced = urlParams.get('wishlistSynced');
+        const syncErrorsParam = urlParams.get('syncErrors');
+        const localCartParam = urlParams.get('localCart');
+        const localWishlistParam = urlParams.get('localWishlist');
+
+        let syncErrors = null;
+        try {
+          if (syncErrorsParam) syncErrors = JSON.parse(syncErrorsParam);
+        } catch (e) {
+          console.warn('Failed to parse syncErrors from URL:', e);
+        }
+
+        // If backend provided explicit sync status, use it to clear local storage
+        if (cartSynced !== null || wishlistSynced !== null) {
+          if (cartSynced === 'true') {
+            localStorage.removeItem('localCart');
+          } else if (urlParams.get('cartCount') && parseInt(urlParams.get('cartCount')) > 0) {
+          }
+
+          if (wishlistSynced === 'true') {
+            localStorage.removeItem('localWishlist');
+          } else if (urlParams.get('wishlistCount') && parseInt(urlParams.get('wishlistCount')) > 0) {
+          }
+
+          if (syncErrors && syncErrors.length > 0) {
+            console.warn('Sync errors after Google login:', syncErrors);
+            toast.warning('Some items could not be synced. They are still in local storage.');
+          }
+        } else {
+          // No explicit sync status — fallback: if local data was sent we may trigger client-side sync endpoint
+          if ((localCartParam || localWishlistParam) && typeof syncAfterGoogleLogin === 'function') {
+            let localCart = [];
+            let localWishlist = [];
+            try {
+              if (localCartParam) localCart = JSON.parse(localCartParam);
+              if (localWishlistParam) localWishlist = JSON.parse(localWishlistParam);
+            } catch (e) {
+              console.warn('Failed to parse local data from URL params:', e);
+            }
+
+            if ((localCart.length > 0 || localWishlist.length > 0) && user) {
+              try {
+                const res = await syncAfterGoogleLogin(localCart, localWishlist);
+                if (res.success) {
+                  if (res.cartSynced) localStorage.removeItem('localCart');
+                  if (res.wishlistSynced) localStorage.removeItem('localWishlist');
+                }
+              } catch (e) {
+                console.warn('Fallback syncAfterGoogleLogin failed:', e);
+              }
+            }
+          }
+        }
+
+        // Clean URL to remove sensitive/verbose params
+        try {
+          const newUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+        } catch (e) {
+          console.warn('Failed to replace URL after Google login:', e);
+        }
+      }
+    };
+
+    checkAuthAfterNavigation();
+  }, [location, user, isAuthenticated]);
 
   const handleProfileMouseLeave = () => {
     if (window.innerWidth > 768) {
@@ -52,7 +134,7 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 shadow-md">
       {/* Main Navbar */}
       <nav className="flex justify-between items-center py-2 px-4 sm:px-6 lg:px-8 h-16">
-        {/* Logo - Move slightly more left on mobile */}
+        {/* Logo */}
         <div className="flex items-center ml-0 sm:ml-0 md:-ml-0">
           <img
             src="/logo.png"
@@ -83,7 +165,7 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* Right Icons - reduce gap */}
+        {/* Right Icons */}
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           {/* Search */}
           <SearchBar isNavbar={true} />
@@ -164,6 +246,12 @@ const Navbar = () => {
                 >
                   {user ? (
                     <>
+                      <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-200">
+                        Signed in as <strong>{user.name}</strong>
+                        {user.authProvider === 'google' && (
+                          <span className="block text-green-600 text-xs">Google Account</span>
+                        )}
+                      </div>
                       <NavLink
                         to="/account"
                         className="flex items-center px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 transition-colors"
@@ -320,6 +408,12 @@ const Navbar = () => {
                   </h4>
                   {user ? (
                     <>
+                      <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-200 mb-2">
+                        Signed in as <strong>{user.name}</strong>
+                        {user.authProvider === 'google' && (
+                          <span className="block text-green-600 text-xs">Google Account</span>
+                        )}
+                      </div>
                       <NavLink
                         to="/account"
                         className="flex items-center w-full px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 transition duration-200"

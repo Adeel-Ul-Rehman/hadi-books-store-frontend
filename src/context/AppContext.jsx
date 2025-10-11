@@ -6,9 +6,7 @@ import { toast } from "react-toastify";
 
 export const AppContext = createContext();
 
-
 const AppContextProvider = ({ children }) => {
-  // Try to restore user from localStorage on mount
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem("user");
     return stored ? JSON.parse(stored) : null;
@@ -18,23 +16,21 @@ const AppContextProvider = ({ children }) => {
 
   const apiUrl = import.meta.env.VITE_API_URL || "/api";
 
-  // Configure Axios default settings
   useEffect(() => {
-    axios.defaults.baseURL = import.meta.env.VITE_API_URL || "https://api.hadibookstore.shop";
+    axios.defaults.baseURL =
+      import.meta.env.VITE_API_URL || "http://localhost:4000";
     axios.defaults.withCredentials = true;
   }, []);
 
-  // On mount, if user exists in localStorage, verify session with backend
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (stored) {
-      // Always verify with backend and set user only if valid
       isAuthenticated();
     }
   }, []);
 
   const apiRequest = async (method, url, data = null, config = {}) => {
-    console.log("In apiRequest-Shayan");
+    console.log("In apiRequest");
     setError(null);
     try {
       const response = await axios({
@@ -43,15 +39,13 @@ const AppContextProvider = ({ children }) => {
         data,
         ...config,
       });
-      // Always return response.data for all users (logged in or not)
       return response.data;
     } catch (err) {
-      const message = err.response?.data?.message || "An unexpected error occurred";
-      // Only show error toast for non-401 errors
+      const message =
+        err.response?.data?.message || "An unexpected error occurred";
       if (err.response?.status !== 401) {
         setError(message);
       }
-      // Auto-logout only on 401 errors when user was previously logged in
       if (err.response?.status === 401 && user) {
         setUser(null);
         localStorage.removeItem("user");
@@ -67,9 +61,9 @@ const AppContextProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const data = await apiRequest("get", "/api/auth/is-auth");
-      
+
       if (data.success && data.user) {
-        setUser({
+        const userData = {
           id: data.user.id,
           name: data.user.name,
           lastName: data.user.lastName,
@@ -82,17 +76,18 @@ const AppContextProvider = ({ children }) => {
           shippingAddress: data.user.shippingAddress,
           mobileNumber: data.user.mobileNumber,
           profilePicture: data.user.profilePicture,
-        });
-        localStorage.setItem("user", JSON.stringify(data.user));
+          authProvider: data.user.authProvider,
+        };
+
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
         return data;
       } else {
-        // Gracefully handle non-authenticated state
         setUser(null);
         localStorage.removeItem("user");
         return { success: false, message: "Not authenticated", user: null };
       }
     } catch (err) {
-      // Gracefully handle authentication errors - don't show error toasts
       if (err.response?.status === 401 && localStorage.getItem("user")) {
         localStorage.removeItem("user");
       }
@@ -103,8 +98,104 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Get local cart and wishlist data
+      const localCart = JSON.parse(localStorage.getItem("localCart") || "[]");
+      const localWishlist = JSON.parse(
+        localStorage.getItem("localWishlist") || "[]"
+      );
+
+      console.log("📦 Sending local data to Google OAuth:", {
+        cartItems: localCart.length,
+        wishlistItems: localWishlist.length,
+      });
+
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+      // Pass local cart/wishlist as query parameters
+      const params = new URLSearchParams();
+      if (localCart.length > 0) {
+        params.append("localCart", JSON.stringify(localCart));
+      }
+      if (localWishlist.length > 0) {
+        params.append("localWishlist", JSON.stringify(localWishlist));
+      }
+
+      const googleAuthUrl = `${baseUrl}/api/auth/google?${params.toString()}`;
+
+      console.log("📍 Redirecting to Google OAuth:", googleAuthUrl);
+
+      window.location.href = googleAuthUrl;
+
+      return { success: true, message: "Redirecting to Google..." };
+    } catch (err) {
+      console.error("Google login error:", err);
+      setIsLoading(false);
+      return {
+        success: false,
+        message: "Google login failed",
+      };
+    }
+  };
+
+  const syncAfterGoogleLogin = async (localCart, localWishlist) => {
+    try {
+      console.log("🔄 Syncing after Google login:", {
+        cartItems: localCart.length,
+        wishlistItems: localWishlist.length,
+      });
+
+      const data = await apiRequest("post", "/api/auth/google-sync", {
+        localCart,
+        localWishlist,
+      });
+
+      if (data.success) {
+        console.log("✅ Google sync successful:", data);
+
+        // Clear local storage if sync was successful
+        if (data.cartSynced) {
+          localStorage.removeItem("localCart");
+          console.log("🗑️ Local cart cleared after successful sync");
+        }
+        if (data.wishlistSynced) {
+          localStorage.removeItem("localWishlist");
+          console.log("🗑️ Local wishlist cleared after successful sync");
+        }
+
+        // Show a single toast once per OAuth flow
+        const toastShownKey = 'googleSyncToastShown';
+        if (!sessionStorage.getItem(toastShownKey)) {
+          if (data.syncErrors && data.syncErrors.length > 0) {
+            console.warn("Google sync errors:", data.syncErrors);
+            toast.warning(
+              "Some items could not be synced. Please check your cart/wishlist."
+            );
+          } else {
+            toast.success("Your cart and wishlist have been synced!");
+          }
+          sessionStorage.setItem(toastShownKey, '1');
+        }
+      } else {
+        console.error("❌ Google sync failed:", data.message);
+        toast.error(
+          "Failed to sync cart/wishlist. Your local items are preserved."
+        );
+      }
+
+      return data;
+    } catch (error) {
+      console.error("❌ Google sync error:", error);
+      toast.error("Error during sync. Your local items are preserved.");
+      return { success: false, message: "Sync failed" };
+    }
+  };
+
   const register = async (userData) => {
-  setIsLoading(true);
+    setIsLoading(true);
     const { name, lastName, email, password, confirmPassword } = userData;
     if (!name || !email || !password || !confirmPassword) {
       setIsLoading(false);
@@ -154,9 +245,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-  setIsLoading(true);
-  // Optimistically set loading state and clear error
-  setError(null);
+    setIsLoading(true);
+    setError(null);
     if (!email || !password) {
       setIsLoading(false);
       return { success: false, message: "Email and password are required" };
@@ -178,9 +268,8 @@ const AppContextProvider = ({ children }) => {
         localWishlist,
       });
       if (data.success) {
-        // Call isAuthenticated to refresh the user data with complete profile info
         await isAuthenticated();
-        
+
         if (data.wishlistSynced) {
           localStorage.removeItem("localWishlist");
         }
@@ -203,14 +292,16 @@ const AppContextProvider = ({ children }) => {
   };
 
   const verifyEmail = async (otp) => {
-  setIsLoading(true);
-  setError(null);
+    setIsLoading(true);
+    setError(null);
     if (!otp || !/^\d{6}$/.test(otp)) {
       setIsLoading(false);
       return { success: false, message: "Invalid OTP format" };
     }
     try {
-      const data = await apiRequest("post", "/api/auth/verify-account", { otp });
+      const data = await apiRequest("post", "/api/auth/verify-account", {
+        otp,
+      });
       if (data.success) {
         setUser((prev) => ({ ...prev, isAccountVerified: true }));
         localStorage.setItem(
@@ -230,8 +321,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const sendVerifyOtp = async (userId) => {
-  setIsLoading(true);
-  setError(null);
+    setIsLoading(true);
+    setError(null);
     if (!userId) {
       setIsLoading(false);
       return { success: false, message: "User ID is required" };
@@ -252,14 +343,16 @@ const AppContextProvider = ({ children }) => {
   };
 
   const sendResetOtp = async (email) => {
-  setIsLoading(true);
-  setError(null);
+    setIsLoading(true);
+    setError(null);
     if (!email || !validator.isEmail(email)) {
       setIsLoading(false);
       return { success: false, message: "Valid email is required" };
     }
     try {
-      const data = await apiRequest("post", "/api/auth/send-reset-otp", { email });
+      const data = await apiRequest("post", "/api/auth/send-reset-otp", {
+        email,
+      });
       return data;
     } catch (err) {
       return {
@@ -272,8 +365,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const verifyResetOtp = async (email, otp) => {
-  setIsLoading(true);
-  setError(null);
+    setIsLoading(true);
+    setError(null);
     if (!email || !otp || !validator.isEmail(email) || !/^\d{6}$/.test(otp)) {
       setIsLoading(false);
       return { success: false, message: "Valid email and OTP are required" };
@@ -295,8 +388,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const fetchUserOrders = async () => {
-  setIsLoading(true);
-  setError(null);
+    setIsLoading(true);
+    setError(null);
     try {
       const data = await apiRequest("get", "/api/orders/get");
       return data;
@@ -311,8 +404,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const createOrder = async (orderData) => {
-  setIsLoading(true);
-  setError(null);
+    setIsLoading(true);
+    setError(null);
     try {
       const data = await apiRequest("post", "/api/orders/create", orderData);
       return data;
@@ -327,8 +420,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const resetPassword = async (email, otp, newPassword, confirmPassword) => {
-  setIsLoading(true);
-  setError(null);
+    setIsLoading(true);
+    setError(null);
     if (!email || !otp || !newPassword || !confirmPassword) {
       setIsLoading(false);
       return { success: false, message: "All fields are required" };
@@ -371,11 +464,12 @@ const AppContextProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    // Optimistically clear user state for fast feedback
     setUser(null);
     localStorage.removeItem("user");
     localStorage.removeItem("localCart");
     localStorage.removeItem("localWishlist");
+    // Clear google sync toast guard so a future login can show the notification again
+    try { sessionStorage.removeItem('googleSyncToastShown'); } catch(e){}
     toast.success("Logged out");
     try {
       const data = await apiRequest("post", "/api/auth/logout");
@@ -389,12 +483,17 @@ const AppContextProvider = ({ children }) => {
   };
 
   const updateUser = async (formData) => {
-  setIsLoading(true);
-  setError(null);
+    setIsLoading(true);
+    setError(null);
     try {
-      const data = await apiRequest("put", "/api/auth/update-profile", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const data = await apiRequest(
+        "put",
+        "/api/auth/update-profile",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
 
       if (data.success) {
         setUser({
@@ -425,10 +524,13 @@ const AppContextProvider = ({ children }) => {
   };
 
   const removeProfilePicture = async () => {
-  setIsLoading(true);
-  setError(null);
+    setIsLoading(true);
+    setError(null);
     try {
-      const data = await apiRequest("delete", "/api/auth/remove-profile-picture");
+      const data = await apiRequest(
+        "delete",
+        "/api/auth/remove-profile-picture"
+      );
       if (data.success) {
         setUser((prev) => ({ ...prev, profilePicture: null }));
         localStorage.setItem(
@@ -449,8 +551,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const deleteAccount = async (email, password) => {
-  setIsLoading(true);
-  setError(null);
+    setIsLoading(true);
+    setError(null);
     if (!email || !password) {
       setIsLoading(false);
       return { success: false, message: "Email and password are required" };
@@ -482,8 +584,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   const uploadPaymentProof = async (orderId, file) => {
-  setIsLoading(true);
-  setError(null);
+    setIsLoading(true);
+    setError(null);
     if (!orderId || !file) {
       setIsLoading(false);
       return {
@@ -540,6 +642,8 @@ const AppContextProvider = ({ children }) => {
         uploadPaymentProof,
         fetchUserOrders,
         createOrder,
+        loginWithGoogle,
+        syncAfterGoogleLogin,
       }}
     >
       {children}

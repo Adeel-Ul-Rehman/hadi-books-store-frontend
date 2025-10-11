@@ -1,9 +1,9 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { AppContext } from "../context/AppContext";
 import Title from "../components/Title";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FiCreditCard, FiTruck, FiMapPin } from "react-icons/fi";
 import { BsCheckCircleFill } from "react-icons/bs";
@@ -14,15 +14,18 @@ const PlaceOrder = () => {
     products,
     currency,
     cartItems,
-    setCartItems, // Ensure this is destructured from ShopContext
+    setCartItems,
     processCheckout,
     calculateCheckout,
     uploadPaymentProof,
+    fetchCart,
     TAX_RATE,
     SHIPPING_FEE,
   } = useContext(ShopContext);
   const { user } = useContext(AppContext);
   const navigate = useNavigate();
+  const location = useLocation();
+  const googleAuthHandled = useRef(false);
 
   const [formData, setFormData] = useState({
     firstName: user?.name || "",
@@ -51,6 +54,39 @@ const PlaceOrder = () => {
   const [showThankYou, setShowThankYou] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [initialCartLength, setInitialCartLength] = useState(cartItems.length);
+
+  // Handle Google login redirect and refresh cart
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const loginSuccess = urlParams.get("login");
+    const source = urlParams.get("source");
+
+    if (loginSuccess === "success" && source === "google" && !googleAuthHandled.current) {
+      googleAuthHandled.current = true;
+        // Try to restore sessionStorage entries; fallback to localStorage backups if missing
+        try {
+          const sCart = JSON.parse(sessionStorage.getItem('googleAuthLocalCart') || 'null');
+          const sWishlist = JSON.parse(sessionStorage.getItem('googleAuthLocalWishlist') || 'null');
+          if (!sCart) {
+            const bCart = JSON.parse(localStorage.getItem('googleAuthLocalCartBackup') || '[]');
+            if (Array.isArray(bCart) && bCart.length > 0) {
+              localStorage.setItem('localCart', JSON.stringify(bCart));
+            }
+          }
+          if (!sWishlist) {
+            const bWishlist = JSON.parse(localStorage.getItem('googleAuthLocalWishlistBackup') || '[]');
+            if (Array.isArray(bWishlist) && bWishlist.length > 0) {
+              localStorage.setItem('localWishlist', JSON.stringify(bWishlist));
+            }
+          }
+        } catch (err) {
+          console.warn('PlaceOrder: error restoring google auth backups', err);
+        }
+        fetchCart(); // Refresh cart data after Google login
+        try { sessionStorage.removeItem('googleAuthLocalCart'); } catch(e){}
+        try { localStorage.removeItem('googleAuthLocalCartBackup'); } catch(e){}
+    }
+  }, [location, fetchCart]);
 
   useEffect(() => {
     if (!user) {
@@ -144,8 +180,7 @@ const PlaceOrder = () => {
     if (!formData.email || !validator.isEmail(formData.email))
       newErrors.email = "Valid email is required";
     if (!formData.address) newErrors.address = "Address is required";
-    if (!formData.city) newErrors.city = "City is required";
-    if (!formData.postCode) newErrors.postCode = "Postcode is required";
+  if (!formData.city) newErrors.city = "City is required";
     if (!formData.country) newErrors.country = "Country is required";
     if (
       !formData.mobileNumber ||
@@ -387,7 +422,7 @@ const PlaceOrder = () => {
                         htmlFor="firstName"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        First Name
+                        First Name <span className="text-red-600">*</span>
                       </label>
                       <input
                         type="text"
@@ -410,7 +445,7 @@ const PlaceOrder = () => {
                         htmlFor="lastName"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Last Name
+                        Last Name <span className="text-red-600">*</span>
                       </label>
                       <input
                         type="text"
@@ -434,7 +469,7 @@ const PlaceOrder = () => {
                       htmlFor="email"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      Email
+                      Email <span className="text-red-600">*</span>
                     </label>
                     <input
                       type="email"
@@ -457,7 +492,7 @@ const PlaceOrder = () => {
                       htmlFor="address"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      Address
+                      Address <span className="text-red-600">*</span>
                     </label>
                     <input
                       type="text"
@@ -481,7 +516,7 @@ const PlaceOrder = () => {
                         htmlFor="city"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        City
+                        City <span className="text-red-600">*</span>
                       </label>
                       <input
                         type="text"
@@ -504,7 +539,7 @@ const PlaceOrder = () => {
                         htmlFor="postCode"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Postal Code
+                        Postal Code <span className="text-gray-400 text-sm">(optional)</span>
                       </label>
                       <input
                         type="text"
@@ -513,8 +548,6 @@ const PlaceOrder = () => {
                         value={formData.postCode}
                         onChange={handleChange}
                         className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500"
-                        required
-                        aria-required="true"
                       />
                       {errors.postCode && (
                         <p className="text-red-500 text-sm mt-1">
@@ -527,7 +560,7 @@ const PlaceOrder = () => {
                         htmlFor="country"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Country
+                        Country <span className="text-red-600">*</span>
                       </label>
                       <select
                         id="country"
@@ -553,7 +586,7 @@ const PlaceOrder = () => {
                       htmlFor="mobileNumber"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      Mobile Number
+                      Mobile Number <span className="text-red-600">*</span>
                     </label>
                     <input
                       type="tel"
