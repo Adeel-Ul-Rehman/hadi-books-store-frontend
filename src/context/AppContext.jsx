@@ -17,8 +17,10 @@ const AppContextProvider = ({ children }) => {
   const apiUrl = import.meta.env.VITE_API_URL || "/api";
 
   useEffect(() => {
-    axios.defaults.baseURL =
-      import.meta.env.VITE_API_URL || "https://api.hadibookstore.shop";
+    // Prefer explicit VITE_API_URL (set at build time). If not provided, use same origin + /api
+    // This avoids accidentally defaulting to localhost in production builds or older cached bundles.
+    const fallbackBase = window?.location ? `${window.location.origin}/api` : "/api";
+    axios.defaults.baseURL = import.meta.env.VITE_API_URL || fallbackBase;
     axios.defaults.withCredentials = true;
   }, []);
 
@@ -113,10 +115,11 @@ const AppContextProvider = ({ children }) => {
         wishlistItems: localWishlist.length,
       });
 
-      const baseUrl = import.meta.env.VITE_API_URL || "https://api.hadibookstore.shop";
+  // Use VITE_API_URL if set (build-time); otherwise fall back to the current origin.
+  const baseUrl = import.meta.env.VITE_API_URL || (window?.location ? window.location.origin : "");
 
-      // Pass local cart/wishlist as query parameters
-      const params = new URLSearchParams();
+  // Pass local cart/wishlist as query parameters
+  const params = new URLSearchParams();
       if (localCart.length > 0) {
         params.append("localCart", JSON.stringify(localCart));
       }
