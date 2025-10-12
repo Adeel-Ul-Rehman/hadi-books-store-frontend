@@ -18,7 +18,7 @@ const AppContextProvider = ({ children }) => {
 
   useEffect(() => {
     axios.defaults.baseURL =
-      import.meta.env.VITE_API_URL || "http://localhost:4000";
+      import.meta.env.VITE_API_URL || "https://api.hadibookstore.shop";
     axios.defaults.withCredentials = true;
   }, []);
 
@@ -113,7 +113,7 @@ const AppContextProvider = ({ children }) => {
         wishlistItems: localWishlist.length,
       });
 
-      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:4000";
+      const baseUrl = import.meta.env.VITE_API_URL || "https://api.hadibookstore.shop";
 
       // Pass local cart/wishlist as query parameters
       const params = new URLSearchParams();
