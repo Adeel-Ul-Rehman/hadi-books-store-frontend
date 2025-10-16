@@ -41,8 +41,8 @@ const AppContextProvider = ({ children }) => {
 
   useEffect(() => {
     // Set axios baseURL once at runtime so all apiRequest calls use the correct host
-  // axios baseURL is the API host root (no trailing /api)
-  axios.defaults.baseURL = apiUrl;
+    // axios baseURL is the API host root (no trailing /api)
+    axios.defaults.baseURL = apiUrl;
     axios.defaults.withCredentials = true;
   }, []);
 
@@ -54,7 +54,7 @@ const AppContextProvider = ({ children }) => {
   }, []);
 
   const apiRequest = async (method, url, data = null, config = {}) => {
-    console.log("In apiRequest");
+    console.log("🔵 API Request:", { method, url, data: data ? '[...]' : 'none' });
     setError(null);
     try {
       // Build a normalized URL so it always contains exactly one '/api' segment
@@ -64,15 +64,18 @@ const AppContextProvider = ({ children }) => {
         // ensure path starts with '/'
         if (!path.startsWith('/')) path = `/${path}`;
         const fullUrl = `${apiUrl.replace(/\/$/, '')}/api${path}`;
+        console.log("🔵 Full API URL:", fullUrl);
         const response = await axios({ method, url: fullUrl, data, ...config });
+        console.log("✅ API Response:", response.data);
         return response.data;
       }
 
       // absolute URL (http/https)
       const response = await axios({ method, url, data, ...config });
-      return response.data;
+      console.log("✅ API Response:", response.data);
       return response.data;
     } catch (err) {
+      console.error("❌ API Error:", err.response?.data || err.message);
       const message =
         err.response?.data?.message || "An unexpected error occurred";
       if (err.response?.status !== 401) {
@@ -145,19 +148,19 @@ const AppContextProvider = ({ children }) => {
         wishlistItems: localWishlist.length,
       });
 
-    // Use VITE_API_URL if set (build-time); otherwise fall back to the current origin.
-    const baseUrl = import.meta.env.VITE_API_URL || (window?.location ? window.location.origin : "");
+      // Use VITE_API_URL if set (build-time); otherwise fall back to the current origin.
+      const baseUrl = import.meta.env.VITE_API_URL || (window?.location ? window.location.origin : "");
 
-    // Pass local cart/wishlist as query parameters
-    const params = new URLSearchParams();
-    if (localCart.length > 0) {
-      params.append("localCart", JSON.stringify(localCart));
-    }
-    if (localWishlist.length > 0) {
-      params.append("localWishlist", JSON.stringify(localWishlist));
-    }
+      // Pass local cart/wishlist as query parameters
+      const params = new URLSearchParams();
+      if (localCart.length > 0) {
+        params.append("localCart", JSON.stringify(localCart));
+      }
+      if (localWishlist.length > 0) {
+        params.append("localWishlist", JSON.stringify(localWishlist));
+      }
 
-    const googleAuthUrl = `${baseUrl}/api/auth/google?${params.toString()}`;
+      const googleAuthUrl = `${baseUrl}/api/auth/google?${params.toString()}`;
 
       console.log("📍 Redirecting to Google OAuth:", googleAuthUrl);
 
@@ -439,10 +442,12 @@ const AppContextProvider = ({ children }) => {
   const createOrder = async (orderData) => {
     setIsLoading(true);
     setError(null);
+    console.log("📦 Creating user order:", orderData);
     try {
       const data = await apiRequest("post", "/api/orders/create", orderData);
       return data;
     } catch (err) {
+      console.error("❌ Create order error:", err);
       return {
         success: false,
         message: err.response?.data?.message || "Failed to create order",
@@ -634,7 +639,45 @@ const AppContextProvider = ({ children }) => {
     try {
       const data = await apiRequest(
         "post",
-        "/checkout/upload-proof",
+        "/api/checkout/upload-proof",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return data;
+    } catch (err) {
+      return {
+        success: false,
+        message:
+          err.response?.data?.message || "Failed to upload payment proof",
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Add guest payment proof upload function
+  const uploadGuestPaymentProof = async (orderId, guestEmail, file) => {
+    setIsLoading(true);
+    setError(null);
+    if (!orderId || !guestEmail || !file) {
+      setIsLoading(false);
+      return {
+        success: false,
+        message: "Order ID, guest email and proof file are required",
+      };
+    }
+
+    const formData = new FormData();
+    formData.append("orderId", orderId);
+    formData.append("guestEmail", guestEmail);
+    formData.append("proof", file);
+
+    try {
+      const data = await apiRequest(
+        "post",
+        "/api/checkout/guest-upload-proof",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -673,6 +716,7 @@ const AppContextProvider = ({ children }) => {
         removeProfilePicture,
         isAuthenticated,
         uploadPaymentProof,
+        uploadGuestPaymentProof, // Add this new function
         fetchUserOrders,
         createOrder,
         loginWithGoogle,

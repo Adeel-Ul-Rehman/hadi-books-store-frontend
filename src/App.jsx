@@ -25,6 +25,7 @@ import GuestCheckout from "./pages/GuestCheckout.jsx";
 import { useEffect, useContext, useRef } from "react";
 import { AppContext } from "./context/AppContext.jsx";
 import { ShopContext } from "./context/ShopContext.jsx";
+import { toast } from "react-toastify";
 
 const AppContent = () => {
   const location = useLocation();

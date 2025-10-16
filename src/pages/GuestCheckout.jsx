@@ -6,11 +6,12 @@ import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import { FiMapPin, FiCreditCard, FiTruck } from "react-icons/fi";
 import { toast } from "react-toastify";
+import validator from "validator";
 
 const GuestCheckout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { apiRequest } = useContext(AppContext);
+  const { apiRequest, uploadGuestPaymentProof } = useContext(AppContext);
   const { cartItems, products, fetchCart, calculateCheckout, currency, SHIPPING_FEE, TAX_RATE } = useContext(ShopContext);
 
   const [guestName, setGuestName] = useState("");
@@ -36,11 +37,17 @@ const GuestCheckout = () => {
       try {
         const result = await calculateCheckout(items);
         if (result.success) {
-          setTotals({ subtotal: result.subtotal, taxes: result.taxes, shippingFee: result.shippingFee, total: result.total, items: result.items });
+          setTotals({ 
+            subtotal: result.subtotal, 
+            taxes: result.taxes, 
+            shippingFee: result.shippingFee, 
+            total: result.total, 
+            items: result.items 
+          });
           return;
         }
       } catch (e) {
-        // ignore and fall back to local calculation
+        console.log("Using fallback calculation:", e);
       }
 
       // fallback local calculation
@@ -51,7 +58,13 @@ const GuestCheckout = () => {
       const subtotal = localItems.reduce((s, i) => s + i.price * i.quantity, 0);
       const taxes = subtotal * (TAX_RATE || 0);
       const shippingFee = SHIPPING_FEE || 0;
-      setTotals({ subtotal, taxes, shippingFee, total: subtotal + taxes + shippingFee, items: localItems });
+      setTotals({ 
+        subtotal, 
+        taxes, 
+        shippingFee, 
+        total: subtotal + taxes + shippingFee, 
+        items: localItems 
+      });
     };
     calculate();
   }, [cartItems, products, calculateCheckout, SHIPPING_FEE, TAX_RATE]);
@@ -65,9 +78,9 @@ const GuestCheckout = () => {
 
   const validate = () => {
     const e = {};
-    if (!guestName) e.guestName = "Full name is required";
-    if (!guestEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(guestEmail)) e.guestEmail = "Valid email is required";
-    if (!address) e.address = "Address is required";
+    if (!guestName?.trim()) e.guestName = "Full name is required";
+    if (!guestEmail?.trim() || !validator.isEmail(guestEmail)) e.guestEmail = "Valid email is required";
+    if (!address?.trim()) e.address = "Address is required";
     // if paying online, require an online payment option and proof
     if (paymentMethod === "online") {
       if (!onlinePaymentOption) e.onlinePaymentOption = "Please select a payment option";
@@ -78,7 +91,11 @@ const GuestCheckout = () => {
   };
 
   const buildItemsPayload = () =>
-    cartItems.map((ci) => ({ productId: ci.productId, quantity: ci.quantity, price: Number(ci.price || products.find((p) => p.id === ci.productId)?.price || 0) }));
+    cartItems.map((ci) => ({ 
+      productId: ci.productId, 
+      quantity: ci.quantity, 
+      price: Number(ci.price || products.find((p) => p.id === ci.productId)?.price || 0) 
+    }));
 
   const handlePlaceOrder = async (ev) => {
     ev.preventDefault();
@@ -96,13 +113,13 @@ const GuestCheckout = () => {
     setIsSubmitting(true);
     try {
       const payload = {
-        guestName,
-        guestEmail,
-        guestPhone,
-        shippingAddress: address,
-        city,
-        postCode,
-        country,
+        guestName: guestName.trim(),
+        guestEmail: guestEmail.trim().toLowerCase(),
+        guestPhone: guestPhone?.trim() || null,
+        shippingAddress: address.trim(),
+        city: city?.trim() || null,
+        postCode: postCode?.trim() || null,
+        country: country?.trim() || null,
         items,
         totalPrice: totals.total,
         paymentMethod: paymentMethod, // 'cod' or 'online'
@@ -111,41 +128,48 @@ const GuestCheckout = () => {
         shippingFee: totals.shippingFee,
       };
 
+      console.log("📦 Guest order payload:", payload);
+
       const data = await apiRequest("post", "/api/orders/guest-create", payload);
+      
       if (data.success) {
+        console.log("✅ Guest order created:", data.order.id);
         toast.success("Order placed successfully. Confirmation sent to your email.", { position: "top-center" });
+        
+        // Clear local cart
         try {
           localStorage.removeItem("localCart");
-        } catch (e) {}
-        try {
-          await fetchCart();
-        } catch (e) {}
+          setCartItems([]);
+        } catch (e) {
+          console.error("Error clearing local cart:", e);
+        }
+
         // If payment method is online and proof exists, upload proof
         if (paymentMethod === "online" && paymentProof) {
           try {
-            const form = new FormData();
-            form.append('orderId', data.order.id);
-            form.append('guestEmail', guestEmail);
-            form.append('proof', paymentProof);
-            const uploadRes = await apiRequest('post', '/api/checkout/guest-upload-proof', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+            console.log("📤 Uploading payment proof...");
+            const uploadRes = await uploadGuestPaymentProof(data.order.id, guestEmail, paymentProof);
             if (uploadRes.success) {
               toast.success('Payment proof uploaded. Admin will verify shortly.', { position: 'top-center' });
             } else {
-              toast.error(uploadRes.message || 'Failed to upload payment proof', { position: 'top-center' });
+              console.warn("Payment proof upload failed:", uploadRes.message);
+              toast.warning('Order placed but payment proof upload failed. Please contact support.', { position: 'top-center' });
             }
           } catch (err) {
             console.error('Guest upload proof error', err);
-            toast.error('Failed to upload payment proof', { position: 'top-center' });
+            toast.warning('Order placed but payment proof upload failed. Please contact support.', { position: 'top-center' });
           }
         }
 
         navigate("/");
       } else {
+        console.error("❌ Guest order failed:", data.message);
         toast.error(data.message || "Failed to place order", { position: "top-center" });
       }
     } catch (err) {
-      console.error("Guest order error:", err);
-      toast.error("Failed to place order", { position: "top-center" });
+      console.error("❌ Guest order error:", err);
+      const errorMessage = err.response?.data?.message || "Failed to place order. Please try again.";
+      toast.error(errorMessage, { position: "top-center" });
     } finally {
       setIsSubmitting(false);
     }
@@ -171,7 +195,6 @@ const GuestCheckout = () => {
     setErrors((prev) => ({ ...prev, paymentProof: '' }));
   };
 
-  // Payment method change handler moved here (inside component scope)
   const handlePaymentMethodChange = (value) => {
     if (value === 'online') {
       setShowOnlinePaymentModal(true);
@@ -196,8 +219,8 @@ const GuestCheckout = () => {
 
   const getImageUrl = (item) => {
     if (!item) return "https://placehold.co/300x300?text=Book+Image";
-    if (Array.isArray(item.productImage)) return item.productImage[0] || "https://placehold.co/300x300?text=Book+Image";
-    if (typeof item.productImage === "string") return item.productImage || "https://placehold.co/300x300?text=Book+Image";
+    if (item.image) return item.image;
+    if (item.product?.image) return item.product.image;
     return "https://placehold.co/300x300?text=Book+Image";
   };
 
@@ -214,9 +237,9 @@ const GuestCheckout = () => {
               {totals.items && totals.items.length > 0 ? (
                 totals.items.map((item, idx) => (
                   <div key={`${item.productId}-${idx}`} className="flex items-center gap-4 p-2 rounded-xl hover:bg-gray-50 transition-all duration-200">
-                    <img src={getImageUrl(item)} alt={item.name || item.productName} className="w-12 h-12 object-cover rounded-xl" />
+                    <img src={getImageUrl(item)} alt={item.name || item.product?.name} className="w-12 h-12 object-cover rounded-xl" />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-800">{item.name || item.productName}</p>
+                      <p className="text-sm font-medium text-gray-800">{item.name || item.product?.name || "Product"}</p>
                       <p className="text-xs text-gray-600">Quantity: {item.quantity}</p>
                     </div>
                     <p className="text-sm font-bold text-[#00308F]">{currency}{(item.price * item.quantity).toFixed(2)}</p>
@@ -255,12 +278,24 @@ const GuestCheckout = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Full Name <span className="text-red-600">*</span></label>
-                    <input type="text" value={guestName} onChange={(e) => setGuestName(e.target.value)} className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" />
+                    <input 
+                      type="text" 
+                      value={guestName} 
+                      onChange={(e) => setGuestName(e.target.value)} 
+                      className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" 
+                      placeholder="Enter your full name"
+                    />
                     {errors.guestName && <p className="text-red-500 text-sm mt-1">{errors.guestName}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Email <span className="text-red-600">*</span></label>
-                    <input type="email" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" />
+                    <input 
+                      type="email" 
+                      value={guestEmail} 
+                      onChange={(e) => setGuestEmail(e.target.value)} 
+                      className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" 
+                      placeholder="your@email.com"
+                    />
                     {errors.guestEmail && <p className="text-red-500 text-sm mt-1">{errors.guestEmail}</p>}
                   </div>
                 </div>
@@ -268,7 +303,13 @@ const GuestCheckout = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Phone</label>
-                    <input type="tel" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" />
+                    <input 
+                      type="tel" 
+                      value={guestPhone} 
+                      onChange={(e) => setGuestPhone(e.target.value)} 
+                      className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" 
+                      placeholder="0300 1234567"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Country <span className="text-gray-400 text-sm">(optional)</span></label>
@@ -276,26 +317,41 @@ const GuestCheckout = () => {
                       <option value="">Select Country</option>
                       <option value="Pakistan">Pakistan</option>
                     </select>
-                    {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Address <span className="text-red-600">*</span></label>
-                  <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" />
+                  <input 
+                    type="text" 
+                    value={address} 
+                    onChange={(e) => setAddress(e.target.value)} 
+                    className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" 
+                    placeholder="Full shipping address"
+                  />
                   {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">City <span className="text-gray-400 text-sm">(optional)</span></label>
-                    <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" />
-                    {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+                    <input 
+                      type="text" 
+                      value={city} 
+                      onChange={(e) => setCity(e.target.value)} 
+                      className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" 
+                      placeholder="City"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Postal Code <span className="text-gray-400 text-sm">(optional)</span></label>
-                    <input type="text" value={postCode} onChange={(e) => setPostCode(e.target.value)} className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" />
-                    {errors.postCode && <p className="text-red-500 text-sm mt-1">{errors.postCode}</p>}
+                    <input 
+                      type="text" 
+                      value={postCode} 
+                      onChange={(e) => setPostCode(e.target.value)} 
+                      className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" 
+                      placeholder="Postal code"
+                    />
                   </div>
                   <div />
                 </div>
@@ -306,11 +362,25 @@ const GuestCheckout = () => {
                   <div className="space-y-4">
                     <div className="flex flex-wrap items-center gap-4">
                       <label className="flex items-center space-x-2 cursor-pointer whitespace-nowrap">
-                        <input type="radio" name="paymentMethod" value="cod" checked={paymentMethod === "cod"} onChange={() => handlePaymentMethodChange('cod')} className="form-radio text-red-500" />
+                        <input 
+                          type="radio" 
+                          name="paymentMethod" 
+                          value="cod" 
+                          checked={paymentMethod === "cod"} 
+                          onChange={() => handlePaymentMethodChange('cod')} 
+                          className="form-radio text-red-500" 
+                        />
                         <span className="text-gray-700 text-sm sm:text-base">Cash on Delivery</span>
                       </label>
                       <label className="flex items-center space-x-2 cursor-pointer whitespace-nowrap">
-                        <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === "online"} onChange={() => handlePaymentMethodChange('online')} className="form-radio text-red-500" />
+                        <input 
+                          type="radio" 
+                          name="paymentMethod" 
+                          value="online" 
+                          checked={paymentMethod === "online"} 
+                          onChange={() => handlePaymentMethodChange('online')} 
+                          className="form-radio text-red-500" 
+                        />
                         <span className="text-gray-700 text-sm sm:text-base">Pay Online</span>
                       </label>
                     </div>
@@ -319,7 +389,11 @@ const GuestCheckout = () => {
                       <div className="mt-4 space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700">Select Payment Option</label>
-                          <select value={onlinePaymentOption} onChange={(e) => setOnlinePaymentOption(e.target.value)} className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500">
+                          <select 
+                            value={onlinePaymentOption} 
+                            onChange={(e) => setOnlinePaymentOption(e.target.value)} 
+                            className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500"
+                          >
                             <option value="">Select a payment option</option>
                             <option value="JazzCash">JazzCash</option>
                             <option value="EasyPaisa">EasyPaisa</option>
@@ -349,7 +423,13 @@ const GuestCheckout = () => {
 
                           <div>
                             <label htmlFor="paymentProof" className="block text-sm font-medium text-gray-700">Upload Payment Proof</label>
-                            <input id="paymentProof" type="file" accept="image/jpeg,image/jpg,image/png,image/webp" onChange={handleFileChange} className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" />
+                            <input 
+                              id="paymentProof" 
+                              type="file" 
+                              accept="image/jpeg,image/jpg,image/png,image/webp" 
+                              onChange={handleFileChange} 
+                              className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" 
+                            />
                             {errors.paymentProof && <p className="text-red-500 text-sm mt-1">{errors.paymentProof}</p>}
                             <p className="text-sm text-gray-600 mt-2">Upload a clear screenshot of your payment confirmation (jpeg, jpg, png, or webp, max 250KB). Admin will verify and update the order status after verification.</p>
                           </div>
@@ -359,22 +439,37 @@ const GuestCheckout = () => {
                   </div>
                 </div>
 
-                  {/* Online payment notice modal */}
-                  {showOnlinePaymentModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                      <div className="bg-white rounded-xl shadow-lg p-6 max-w-lg mx-4">
-                        <h3 className="text-lg font-semibold mb-2">Online Payment</h3>
-                        <p className="text-sm text-gray-700">We will bring a proper online payment system very soon! Until then, please use the manual payment methods provided below.</p>
-                        <div className="mt-4 flex justify-end gap-2">
-                          <button onClick={() => handleOnlinePaymentModalClose(false)} className="px-4 py-2 rounded-xl border">Cancel</button>
-                          <button onClick={() => handleOnlinePaymentModalClose(true)} className="px-4 py-2 rounded-xl bg-red-500 text-white">Proceed</button>
-                        </div>
+                {/* Online payment notice modal */}
+                {showOnlinePaymentModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                    <div className="bg-white rounded-xl shadow-lg p-6 max-w-lg mx-4">
+                      <h3 className="text-lg font-semibold mb-2">Online Payment</h3>
+                      <p className="text-sm text-gray-700">We will bring a proper online payment system very soon! Until then, please use the manual payment methods provided below.</p>
+                      <div className="mt-4 flex justify-end gap-2">
+                        <button 
+                          onClick={() => handleOnlinePaymentModalClose(false)} 
+                          className="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={() => handleOnlinePaymentModalClose(true)} 
+                          className="px-4 py-2 rounded-xl bg-red-500 text-white hover:bg-red-600"
+                        >
+                          Proceed
+                        </button>
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  <button type="submit" disabled={isSubmitting} className="w-full py-3 px-4 bg-gradient-to-r from-red-400 to-orange-500 text-white font-semibold rounded-2xl hover:from-red-500 hover:to-orange-600 transition-all duration-300 flex items-center justify-center gap-2 mt-4">
-                  <FiTruck /> {isSubmitting ? "Processing..." : "Place Order as Guest"}
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting} 
+                  className="w-full py-3 px-4 bg-gradient-to-r from-red-400 to-orange-500 text-white font-semibold rounded-2xl hover:from-red-500 hover:to-orange-600 transition-all duration-300 flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FiTruck /> 
+                  {isSubmitting ? "Processing..." : "Place Order as Guest"}
                 </button>
               </form>
             </div>
