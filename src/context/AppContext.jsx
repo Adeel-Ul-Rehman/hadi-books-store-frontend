@@ -17,28 +17,32 @@ const AppContextProvider = ({ children }) => {
   // Compute runtime API base URL:
   // Priority: VITE_API_URL (build-time) -> api.hadibookstore.shop (production frontend) -> localhost:4000 (local dev) -> same-origin /api
   const computeRuntimeApiBase = () => {
-    // If VITE_API_URL was set at build time, prefer it only if it doesn't point to localhost
+    // Return the API host root (no trailing /api)
     const builtApi = import.meta.env.VITE_API_URL;
-    if (builtApi && !/localhost/.test(builtApi)) return builtApi;
-    if (typeof window === 'undefined') return '/api';
+    if (builtApi && !/localhost/.test(builtApi)) {
+      // strip trailing /api if present
+      return builtApi.replace(/\/api\/?$/, '');
+    }
+    if (typeof window === 'undefined') return '';
     const host = window.location.hostname;
     const protocol = window.location.protocol;
-    // Production frontend served from hadibookstore.shop should call api.hadibookstore.shop
+    // If frontend is hadibookstore.shop, use api subdomain
     if (host === 'hadibookstore.shop' || host === 'www.hadibookstore.shop') {
       return 'https://api.hadibookstore.shop';
     }
-    // Local development: if running on localhost, assume backend on port 4000
+    // Local development on localhost -> backend at localhost:4000
     if (host.includes('localhost')) {
-      return `${protocol}//${host.replace(/:\d+$/, '')}:4000`;
+      return `${protocol}//localhost:4000`;
     }
-    // Fallback to same origin + /api (useful for integrated deployments)
-    return `${window.location.origin}/api`;
+    // Default to same origin (no /api appended) — we'll add /api in requests
+    return window.location.origin;
   };
   const apiUrl = computeRuntimeApiBase();
 
   useEffect(() => {
     // Set axios baseURL once at runtime so all apiRequest calls use the correct host
-    axios.defaults.baseURL = apiUrl;
+  // axios baseURL is the API host root (no trailing /api)
+  axios.defaults.baseURL = apiUrl;
     axios.defaults.withCredentials = true;
   }, []);
 
@@ -53,8 +57,20 @@ const AppContextProvider = ({ children }) => {
     console.log("In apiRequest");
     setError(null);
     try {
-      // axios.defaults.baseURL is set, so use relative URLs normally.
+      // Build a normalized URL so it always contains exactly one '/api' segment
+      if (typeof url === 'string' && !url.startsWith('http')) {
+        // remove leading '/api' if present
+        let path = url.replace(/^\/api/, '');
+        // ensure path starts with '/'
+        if (!path.startsWith('/')) path = `/${path}`;
+        const fullUrl = `${apiUrl.replace(/\/$/, '')}/api${path}`;
+        const response = await axios({ method, url: fullUrl, data, ...config });
+        return response.data;
+      }
+
+      // absolute URL (http/https)
       const response = await axios({ method, url, data, ...config });
+      return response.data;
       return response.data;
     } catch (err) {
       const message =
