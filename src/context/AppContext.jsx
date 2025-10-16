@@ -14,13 +14,31 @@ const AppContextProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const apiUrl = import.meta.env.VITE_API_URL || "/api";
+  // Compute runtime API base URL:
+  // Priority: VITE_API_URL (build-time) -> api.hadibookstore.shop (production frontend) -> localhost:4000 (local dev) -> same-origin /api
+  const computeRuntimeApiBase = () => {
+    // If VITE_API_URL was set at build time, prefer it only if it doesn't point to localhost
+    const builtApi = import.meta.env.VITE_API_URL;
+    if (builtApi && !/localhost/.test(builtApi)) return builtApi;
+    if (typeof window === 'undefined') return '/api';
+    const host = window.location.hostname;
+    const protocol = window.location.protocol;
+    // Production frontend served from hadibookstore.shop should call api.hadibookstore.shop
+    if (host === 'hadibookstore.shop' || host === 'www.hadibookstore.shop') {
+      return 'https://api.hadibookstore.shop';
+    }
+    // Local development: if running on localhost, assume backend on port 4000
+    if (host.includes('localhost')) {
+      return `${protocol}//${host.replace(/:\d+$/, '')}:4000`;
+    }
+    // Fallback to same origin + /api (useful for integrated deployments)
+    return `${window.location.origin}/api`;
+  };
+  const apiUrl = computeRuntimeApiBase();
 
   useEffect(() => {
-    // Prefer explicit VITE_API_URL (set at build time). If not provided, use same origin + /api
-    // This avoids accidentally defaulting to localhost in production builds or older cached bundles.
-    const fallbackBase = window?.location ? `${window.location.origin}/api` : "/api";
-    axios.defaults.baseURL = import.meta.env.VITE_API_URL || fallbackBase;
+    // Set axios baseURL once at runtime so all apiRequest calls use the correct host
+    axios.defaults.baseURL = apiUrl;
     axios.defaults.withCredentials = true;
   }, []);
 
@@ -35,12 +53,8 @@ const AppContextProvider = ({ children }) => {
     console.log("In apiRequest");
     setError(null);
     try {
-      const response = await axios({
-        method,
-        url: url.startsWith("http") ? url : `${apiUrl}${url}`,
-        data,
-        ...config,
-      });
+      // axios.defaults.baseURL is set, so use relative URLs normally.
+      const response = await axios({ method, url, data, ...config });
       return response.data;
     } catch (err) {
       const message =
@@ -115,19 +129,19 @@ const AppContextProvider = ({ children }) => {
         wishlistItems: localWishlist.length,
       });
 
-  // Use VITE_API_URL if set (build-time); otherwise fall back to the current origin.
-  const baseUrl = import.meta.env.VITE_API_URL || (window?.location ? window.location.origin : "");
+    // Use VITE_API_URL if set (build-time); otherwise fall back to the current origin.
+    const baseUrl = import.meta.env.VITE_API_URL || (window?.location ? window.location.origin : "");
 
-  // Pass local cart/wishlist as query parameters
-  const params = new URLSearchParams();
-      if (localCart.length > 0) {
-        params.append("localCart", JSON.stringify(localCart));
-      }
-      if (localWishlist.length > 0) {
-        params.append("localWishlist", JSON.stringify(localWishlist));
-      }
+    // Pass local cart/wishlist as query parameters
+    const params = new URLSearchParams();
+    if (localCart.length > 0) {
+      params.append("localCart", JSON.stringify(localCart));
+    }
+    if (localWishlist.length > 0) {
+      params.append("localWishlist", JSON.stringify(localWishlist));
+    }
 
-      const googleAuthUrl = `${baseUrl}/api/auth/google?${params.toString()}`;
+    const googleAuthUrl = `${baseUrl}/api/auth/google?${params.toString()}`;
 
       console.log("📍 Redirecting to Google OAuth:", googleAuthUrl);
 
