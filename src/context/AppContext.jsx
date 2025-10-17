@@ -15,7 +15,7 @@ const AppContextProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   // Compute runtime API base URL:
-  // Direct connection to backend server (no Cloudflare)
+  // Priority: VITE_API_URL (build-time) -> api.hadibookstore.shop (production frontend) -> localhost:4000 (local dev) -> same-origin /api
   const computeRuntimeApiBase = () => {
     // Return the API host root (no trailing /api)
     const builtApi = import.meta.env.VITE_API_URL;
@@ -26,9 +26,9 @@ const AppContextProvider = ({ children }) => {
     if (typeof window === 'undefined') return '';
     const host = window.location.hostname;
     const protocol = window.location.protocol;
-    // If frontend is hadibookstore.shop or www.hadibookstore.shop, use direct IP
+    // If frontend is hadibookstore.shop, use api subdomain
     if (host === 'hadibookstore.shop' || host === 'www.hadibookstore.shop') {
-      return 'http://139.59.64.199:4000';
+      return 'https://api.hadibookstore.shop';
     }
     // Local development on localhost -> backend at localhost:4000
     if (host.includes('localhost')) {
