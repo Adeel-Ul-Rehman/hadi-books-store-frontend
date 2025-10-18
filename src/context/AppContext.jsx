@@ -13,6 +13,14 @@ const AppContextProvider = ({ children }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isGoogleAuthInProgress, setIsGoogleAuthInProgress] = useState(() => {
+    // Check if we're in the middle of Google OAuth on initial load
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('login') === 'success' && urlParams.get('source') === 'google';
+    }
+    return false;
+  });
 
   // Compute runtime API base URL:
   // Priority: VITE_API_URL (build-time) -> api.hadibookstore.shop (production frontend) -> localhost:4000 (local dev) -> same-origin /api
@@ -81,7 +89,8 @@ const AppContextProvider = ({ children }) => {
       if (err.response?.status !== 401) {
         setError(message);
       }
-      if (err.response?.status === 401 && user) {
+      // Only show session expired toast if NOT during Google OAuth and user exists
+      if (err.response?.status === 401 && user && !isGoogleAuthInProgress) {
         setUser(null);
         localStorage.removeItem("user");
         localStorage.removeItem("localCart");
@@ -116,10 +125,25 @@ const AppContextProvider = ({ children }) => {
 
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
+        
+        // Clear Google OAuth flag after successful authentication
+        if (isGoogleAuthInProgress) {
+          setIsGoogleAuthInProgress(false);
+        }
+        
         return data;
       } else {
         setUser(null);
         localStorage.removeItem("user");
+        
+        // If Google OAuth failed after some time, show error
+        if (isGoogleAuthInProgress) {
+          setTimeout(() => {
+            setIsGoogleAuthInProgress(false);
+            toast.error("Authentication failed. Please try again.");
+          }, 2000);
+        }
+        
         return { success: false, message: "Not authenticated", user: null };
       }
     } catch (err) {
@@ -127,6 +151,17 @@ const AppContextProvider = ({ children }) => {
         localStorage.removeItem("user");
       }
       setUser(null);
+      
+      // If Google OAuth failed after some time, show error
+      if (isGoogleAuthInProgress) {
+        setTimeout(() => {
+          setIsGoogleAuthInProgress(false);
+          if (!user) {
+            toast.error("Authentication failed. Please try again.");
+          }
+        }, 2000);
+      }
+      
       return { success: false, message: "Not authenticated", user: null };
     } finally {
       setIsLoading(false);
@@ -701,6 +736,8 @@ const AppContextProvider = ({ children }) => {
         user,
         isLoading,
         error,
+        isGoogleAuthInProgress,
+        setIsGoogleAuthInProgress,
         login,
         register,
         logout,

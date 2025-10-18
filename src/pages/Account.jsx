@@ -42,7 +42,9 @@ const Account = () => {
     logout,
     apiRequest,
     removeProfilePicture,
-    isAuthenticated
+    isAuthenticated,
+    isGoogleAuthInProgress,
+    setIsGoogleAuthInProgress
   } = useContext(AppContext);
   const { fetchCart, fetchWishlist, products, currency } =
     useContext(ShopContext);
@@ -81,11 +83,6 @@ const Account = () => {
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [isGoogleAuthLoading, setIsGoogleAuthLoading] = useState(() => {
-    // Check if we're returning from Google OAuth on initial load
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('login') === 'success' && urlParams.get('source') === 'google';
-  });
 
   // Check if user is logged in via Google
   const isGoogleUser = user?.authProvider === 'google';
@@ -118,9 +115,6 @@ const Account = () => {
       if (loginSuccess === 'success' && source === 'google') {
         console.log('🔄 Account: Google OAuth detected, refreshing user data...');
         
-        // Set loading state immediately
-        setIsGoogleAuthLoading(true);
-        
         // Clear URL parameters
         window.history.replaceState({}, document.title, '/account');
         
@@ -146,11 +140,6 @@ const Account = () => {
         }
         
         await isAuthenticated();
-        
-        // Keep loading state for a moment to ensure smooth transition
-        setTimeout(() => {
-          setIsGoogleAuthLoading(false);
-        }, 500);
       }
     };
 
@@ -523,7 +512,7 @@ const Account = () => {
   };
 
   // Show loading screen during Google OAuth authentication
-  if (isGoogleAuthLoading) {
+  if (isGoogleAuthInProgress) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
