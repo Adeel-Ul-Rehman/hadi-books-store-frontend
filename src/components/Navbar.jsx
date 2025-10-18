@@ -130,6 +130,20 @@ const Navbar = () => {
     { path: "/contact", label: "CONTACT", icon: <FiMail className="w-5 h-5" /> },
   ];
 
+  // Fixed: Close profile menu when clicking anywhere on mobile
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (window.innerWidth <= 768 && showProfileMenu) {
+        if (!event.target.closest('.profile-menu') && !event.target.closest('.profile-button')) {
+          setShowProfileMenu(false);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showProfileMenu]);
+
   return (
     <header className="sticky top-0 z-50 bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 shadow-md">
       {/* Main Navbar */}
@@ -198,9 +212,9 @@ const Navbar = () => {
             )}
           </button>
 
-          {/* Profile */}
+          {/* Profile - Fixed: Added profile-button class for mobile click detection */}
           <div
-            className="relative group"
+            className="relative group profile-button"
             onMouseEnter={() =>
               window.innerWidth > 768 && setShowProfileMenu(true)
             }
