@@ -189,8 +189,8 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
+            <div className="flex items-center justify-between flex-wrap sm:flex-nowrap gap-2">
+              <div className="flex items-center flex-shrink-0">
                 <input
                   id="remember-me"
                   name="remember-me"
@@ -200,16 +200,16 @@ const Login = () => {
                 />
                 <label
                   htmlFor="remember-me"
-                  className="ml-2 block text-sm text-gray-800"
+                  className="ml-2 block text-xs sm:text-sm text-gray-800 whitespace-nowrap"
                 >
                   Remember me
                 </label>
               </div>
 
-              <div className="text-sm">
+              <div className="text-xs sm:text-sm flex-shrink-0">
                 <Link
                   to="/reset-password"
-                  className="font-medium text-[#00308F] hover:text-[#002266] transition-all duration-300"
+                  className="font-medium text-[#00308F] hover:text-[#002266] transition-all duration-300 whitespace-nowrap"
                 >
                   Forgot your password?
                 </Link>

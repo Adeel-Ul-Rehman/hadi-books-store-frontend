@@ -36,7 +36,7 @@ const ShopContextProvider = ({ children }) => {
       if (search) params.append('search', search);
       if (bestseller) params.append('bestseller', 'true');
       params.append('page', '1');
-      params.append('limit', '120');
+      params.append('limit', '10000'); // Fetch ALL products (high limit to get everything)
 
       const data = await apiRequest('get', `/api/products/get?${params.toString()}`);
       if (data.success) {
@@ -45,6 +45,7 @@ const ShopContextProvider = ({ children }) => {
           subCategories: product.subCategories || [],
         }));
         setProducts(productsWithSubCategories || []);
+        console.log(`✅ Fetched ${productsWithSubCategories.length} products from database`);
       } else {
         setProducts([]);
       }
