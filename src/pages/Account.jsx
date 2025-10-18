@@ -81,6 +81,11 @@ const Account = () => {
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isGoogleAuthLoading, setIsGoogleAuthLoading] = useState(() => {
+    // Check if we're returning from Google OAuth on initial load
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('login') === 'success' && urlParams.get('source') === 'google';
+  });
 
   // Check if user is logged in via Google
   const isGoogleUser = user?.authProvider === 'google';
@@ -113,6 +118,9 @@ const Account = () => {
       if (loginSuccess === 'success' && source === 'google') {
         console.log('🔄 Account: Google OAuth detected, refreshing user data...');
         
+        // Set loading state immediately
+        setIsGoogleAuthLoading(true);
+        
         // Clear URL parameters
         window.history.replaceState({}, document.title, '/account');
         
@@ -136,7 +144,13 @@ const Account = () => {
         } catch (err) {
           console.warn('Account: error restoring google auth backups', err);
         }
+        
         await isAuthenticated();
+        
+        // Keep loading state for a moment to ensure smooth transition
+        setTimeout(() => {
+          setIsGoogleAuthLoading(false);
+        }, 500);
       }
     };
 
@@ -507,6 +521,25 @@ const Account = () => {
       );
     }
   };
+
+  // Show loading screen during Google OAuth authentication
+  if (isGoogleAuthLoading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen bg-gradient-to-r from-sky-100 via-orange-100 to-red-100 flex items-center justify-center py-12 px-4"
+      >
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#00308F] mb-4"></div>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+            Completing Google Sign In...
+          </h2>
+          <p className="text-gray-600">Please wait while we set up your account</p>
+        </div>
+      </motion.div>
+    );
+  }
 
   if (!user) {
     return (
