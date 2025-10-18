@@ -17,7 +17,14 @@ const AppContextProvider = ({ children }) => {
     // Check if we're in the middle of Google OAuth on initial load
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('login') === 'success' && urlParams.get('source') === 'google';
+      const isGoogleOAuth = urlParams.get('login') === 'success' && urlParams.get('source') === 'google';
+      
+      if (isGoogleOAuth) {
+        // Set start time for OAuth process
+        sessionStorage.setItem('googleOAuthStartTime', Date.now().toString());
+      }
+      
+      return isGoogleOAuth;
     }
     return false;
   });
@@ -126,9 +133,21 @@ const AppContextProvider = ({ children }) => {
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
         
-        // Clear Google OAuth flag after successful authentication
+        // Clear Google OAuth flag and show success toast ONLY ONCE
         if (isGoogleAuthInProgress) {
           setIsGoogleAuthInProgress(false);
+          
+          // Show success toast only if not shown already
+          const googleSuccessShown = sessionStorage.getItem('googleLoginSuccessShown');
+          if (!googleSuccessShown) {
+            sessionStorage.setItem('googleLoginSuccessShown', 'true');
+            toast.success(`Welcome back, ${userData.name}!`);
+            
+            // Clear the flag after 5 seconds (in case user logs out and logs in again)
+            setTimeout(() => {
+              sessionStorage.removeItem('googleLoginSuccessShown');
+            }, 5000);
+          }
         }
         
         return data;
@@ -136,12 +155,26 @@ const AppContextProvider = ({ children }) => {
         setUser(null);
         localStorage.removeItem("user");
         
-        // If Google OAuth failed after some time, show error
+        // Only show error if OAuth was in progress for more than 3 seconds
         if (isGoogleAuthInProgress) {
-          setTimeout(() => {
+          const oauthStartTime = sessionStorage.getItem('googleOAuthStartTime');
+          const currentTime = Date.now();
+          
+          if (oauthStartTime && (currentTime - parseInt(oauthStartTime)) > 3000) {
             setIsGoogleAuthInProgress(false);
-            toast.error("Authentication failed. Please try again.");
-          }, 2000);
+            
+            // Show error only if not shown already
+            const googleErrorShown = sessionStorage.getItem('googleLoginErrorShown');
+            if (!googleErrorShown) {
+              sessionStorage.setItem('googleLoginErrorShown', 'true');
+              toast.error("Authentication failed. Please try again.");
+              
+              // Clear the flag after 5 seconds
+              setTimeout(() => {
+                sessionStorage.removeItem('googleLoginErrorShown');
+              }, 5000);
+            }
+          }
         }
         
         return { success: false, message: "Not authenticated", user: null };
@@ -152,14 +185,26 @@ const AppContextProvider = ({ children }) => {
       }
       setUser(null);
       
-      // If Google OAuth failed after some time, show error
+      // Only show error if OAuth was in progress for more than 3 seconds
       if (isGoogleAuthInProgress) {
-        setTimeout(() => {
+        const oauthStartTime = sessionStorage.getItem('googleOAuthStartTime');
+        const currentTime = Date.now();
+        
+        if (oauthStartTime && (currentTime - parseInt(oauthStartTime)) > 3000) {
           setIsGoogleAuthInProgress(false);
-          if (!user) {
+          
+          // Show error only if not shown already
+          const googleErrorShown = sessionStorage.getItem('googleLoginErrorShown');
+          if (!googleErrorShown && !user) {
+            sessionStorage.setItem('googleLoginErrorShown', 'true');
             toast.error("Authentication failed. Please try again.");
+            
+            // Clear the flag after 5 seconds
+            setTimeout(() => {
+              sessionStorage.removeItem('googleLoginErrorShown');
+            }, 5000);
           }
-        }, 2000);
+        }
       }
       
       return { success: false, message: "Not authenticated", user: null };
