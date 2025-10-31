@@ -38,18 +38,15 @@ const GoogleAuthHandler = () => {
                 window.updateUserState(data.user);
               }
             } else {
-              console.log('❌ Auth check failed after Google OAuth');
-              toast.error('Authentication failed. Please try again.');
+              console.log('ℹ️ Auth check returned false, waiting for authentication...');
               navigate('/login');
             }
           } else {
-            console.log('❌ Auth check request failed');
-            toast.error('Authentication check failed.');
+            console.log('ℹ️ Auth check request failed, redirecting to login...');
             navigate('/login');
           }
         } catch (error) {
           console.error('Error during Google auth handling:', error);
-          toast.error('An error occurred during authentication.');
           navigate('/login');
         }
       }

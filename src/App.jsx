@@ -92,12 +92,10 @@ const AppContent = () => {
             await fetchCart();
             await fetchWishlist();
           } else {
-            console.error("❌ Authentication failed after Google login");
-            toast.error("Authentication failed. Please try again.");
+            console.log("ℹ️ Authentication check returned false, waiting for redirect to complete...");
           }
         } catch (error) {
           console.error("❌ Error during Google auth processing:", error);
-          toast.error("Error during login process. Please try again.");
         }
       }
     };

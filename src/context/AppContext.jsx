@@ -155,25 +155,14 @@ const AppContextProvider = ({ children }) => {
         setUser(null);
         localStorage.removeItem("user");
         
-        // Only show error if OAuth was in progress for more than 3 seconds
+        // Clear Google OAuth flag if in progress for more than 3 seconds
         if (isGoogleAuthInProgress) {
           const oauthStartTime = sessionStorage.getItem('googleOAuthStartTime');
           const currentTime = Date.now();
           
           if (oauthStartTime && (currentTime - parseInt(oauthStartTime)) > 3000) {
             setIsGoogleAuthInProgress(false);
-            
-            // Show error only if not shown already
-            const googleErrorShown = sessionStorage.getItem('googleLoginErrorShown');
-            if (!googleErrorShown) {
-              sessionStorage.setItem('googleLoginErrorShown', 'true');
-              toast.error("Authentication failed. Please try again.");
-              
-              // Clear the flag after 5 seconds
-              setTimeout(() => {
-                sessionStorage.removeItem('googleLoginErrorShown');
-              }, 5000);
-            }
+            sessionStorage.removeItem('googleLoginErrorShown');
           }
         }
         
@@ -185,25 +174,14 @@ const AppContextProvider = ({ children }) => {
       }
       setUser(null);
       
-      // Only show error if OAuth was in progress for more than 3 seconds
+      // Clear Google OAuth flag if in progress for more than 3 seconds
       if (isGoogleAuthInProgress) {
         const oauthStartTime = sessionStorage.getItem('googleOAuthStartTime');
         const currentTime = Date.now();
         
         if (oauthStartTime && (currentTime - parseInt(oauthStartTime)) > 3000) {
           setIsGoogleAuthInProgress(false);
-          
-          // Show error only if not shown already
-          const googleErrorShown = sessionStorage.getItem('googleLoginErrorShown');
-          if (!googleErrorShown && !user) {
-            sessionStorage.setItem('googleLoginErrorShown', 'true');
-            toast.error("Authentication failed. Please try again.");
-            
-            // Clear the flag after 5 seconds
-            setTimeout(() => {
-              sessionStorage.removeItem('googleLoginErrorShown');
-            }, 5000);
-          }
+          sessionStorage.removeItem('googleLoginErrorShown');
         }
       }
       
