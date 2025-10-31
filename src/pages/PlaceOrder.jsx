@@ -223,10 +223,18 @@ const PlaceOrder = () => {
     }
     
     if (!validateForm()) {
-      toast.error("Please fill in all required fields correctly", {
-        position: "top-center",
-        autoClose: 3000,
-      });
+      // Show specific validation errors
+      const errorMessages = Object.values(errors).filter(Boolean);
+      if (errorMessages.length > 0) {
+        errorMessages.forEach((msg, index) => {
+          setTimeout(() => {
+            toast.error(msg, {
+              position: "top-center",
+              autoClose: 4000,
+            });
+          }, index * 100); // Stagger toasts slightly
+        });
+      }
       return;
     }
 
@@ -290,9 +298,11 @@ const PlaceOrder = () => {
         }, 7000); // Increased to 7 seconds for longer display
       } else {
         console.error('❌ Checkout failed:', checkoutResponse);
-        toast.error(checkoutResponse.message || "Failed to place order", {
+        // Show specific error message from backend
+        const errorMsg = checkoutResponse.message || "Failed to place order";
+        toast.error(errorMsg, {
           position: "top-center",
-          autoClose: 3000,
+          autoClose: 4000,
         });
         setCartItems(prevCartItems); // Revert cart if checkout fails
       }
@@ -303,9 +313,11 @@ const PlaceOrder = () => {
         response: error.response?.data,
         status: error.response?.status
       });
-      toast.error(error.response?.data?.message || "An unexpected error occurred during checkout", {
+      // Show specific error message from backend or network error
+      const errorMsg = error.response?.data?.message || "Network error. Please check your connection and try again.";
+      toast.error(errorMsg, {
         position: "top-center",
-        autoClose: 3000,
+        autoClose: 4000,
       });
       setCartItems(prevCartItems); // Revert cart on error
     } finally {

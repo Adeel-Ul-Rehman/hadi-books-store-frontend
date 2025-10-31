@@ -103,7 +103,15 @@ const GuestCheckout = () => {
   const handlePlaceOrder = async (ev) => {
     ev.preventDefault();
     if (!validate()) {
-      toast.error("Please fill all required fields correctly", { position: "top-center" });
+      // Show specific validation errors
+      const errorMessages = Object.values(errors).filter(Boolean);
+      if (errorMessages.length > 0) {
+        errorMessages.forEach((msg, index) => {
+          setTimeout(() => {
+            toast.error(msg, { position: "top-center", autoClose: 4000 });
+          }, index * 100); // Stagger toasts slightly
+        });
+      }
       return;
     }
 
@@ -167,12 +175,14 @@ const GuestCheckout = () => {
         navigate("/");
       } else {
         console.error("❌ Guest order failed:", data.message);
-        toast.error(data.message || "Failed to place order", { position: "top-center" });
+        // Show specific error message from backend
+        toast.error(data.message || "Failed to place order", { position: "top-center", autoClose: 4000 });
       }
     } catch (err) {
       console.error("❌ Guest order error:", err);
-      const errorMessage = err.response?.data?.message || "Failed to place order. Please try again.";
-      toast.error(errorMessage, { position: "top-center" });
+      // Show specific error message from backend or network error
+      const errorMessage = err.response?.data?.message || "Network error. Please check your connection and try again.";
+      toast.error(errorMessage, { position: "top-center", autoClose: 4000 });
     } finally {
       setIsSubmitting(false);
     }
