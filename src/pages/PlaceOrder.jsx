@@ -201,6 +201,16 @@ const PlaceOrder = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Check if user is logged in
+    if (!user || !user.id) {
+      toast.error("Please log in to place an order", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      navigate('/login?redirect=/place-order');
+      return;
+    }
+    
     // Check if cart is empty
     if (!cartItems || cartItems.length === 0) {
       toast.error("Your cart is empty. Please add items before checkout.", {
