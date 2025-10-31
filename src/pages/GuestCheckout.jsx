@@ -82,8 +82,8 @@ const GuestCheckout = () => {
     if (!guestEmail?.trim() || !validator.isEmail(guestEmail)) e.guestEmail = "Valid email is required";
     if (!address?.trim()) e.address = "Address is required";
     if (!city?.trim()) e.city = "City is required";
+    if (!country?.trim()) e.country = "Country is required";
     // postCode is optional - not validated
-    // country defaults to Pakistan - not validated
     // if paying online, require an online payment option and proof
     if (paymentMethod === "online") {
       if (!onlinePaymentOption) e.onlinePaymentOption = "Please select a payment option";

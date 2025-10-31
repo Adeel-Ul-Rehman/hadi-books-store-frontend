@@ -181,8 +181,8 @@ const PlaceOrder = () => {
       newErrors.email = "Valid email is required";
     if (!formData.address) newErrors.address = "Address is required";
     if (!formData.city) newErrors.city = "City is required";
+    if (!formData.country) newErrors.country = "Country is required";
     // postCode is optional - not validated
-    // country defaults to Pakistan - not validated
     if (
       !formData.mobileNumber ||
       !validator.isMobilePhone(formData.mobileNumber, "any")
