@@ -413,7 +413,7 @@ const ShopContextProvider = ({ children }) => {
   const processCheckout = async (checkoutData) => {
     try {
       const { paymentMethod, onlinePaymentOption, ...rest } = checkoutData;
-      const data = await apiRequest('post', '/api/checkout/process', {
+      const payload = {
         ...rest,
         paymentMethod,
         onlinePaymentOption: paymentMethod === 'online' ? onlinePaymentOption : undefined,
@@ -422,7 +422,11 @@ const ShopContextProvider = ({ children }) => {
           return sum + (product ? product.price * item.quantity : 0);
         }, 0) * TAX_RATE,
         shippingFee: SHIPPING_FEE,
-      });
+      };
+      
+      console.log('📤 ShopContext sending to /api/checkout/process:', JSON.stringify(payload, null, 2));
+      
+      const data = await apiRequest('post', '/api/checkout/process', payload);
       if (data.success) {
         setCartItems([]); // Clear cart items on successful checkout
         localStorage.removeItem("localCart"); // Clear local storage cart
