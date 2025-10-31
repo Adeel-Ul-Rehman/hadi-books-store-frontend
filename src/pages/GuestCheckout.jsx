@@ -80,6 +80,7 @@ const GuestCheckout = () => {
     const e = {};
     if (!guestName?.trim()) e.guestName = "Full name is required";
     if (!guestEmail?.trim() || !validator.isEmail(guestEmail)) e.guestEmail = "Valid email is required";
+    if (!guestPhone?.trim()) e.guestPhone = "Phone number is required";
     if (!address?.trim()) e.address = "Address is required";
     if (!city?.trim()) e.city = "City is required";
     if (!country?.trim()) e.country = "Country is required";
@@ -126,11 +127,11 @@ const GuestCheckout = () => {
       const payload = {
         guestName: guestName.trim(),
         guestEmail: guestEmail.trim().toLowerCase(),
-        guestPhone: guestPhone?.trim() || null,
+        guestPhone: guestPhone.trim(), // Required now
         shippingAddress: address.trim(),
-        city: city?.trim() || null,
-        postCode: postCode?.trim() || null,
-        country: country?.trim() || null,
+        city: city.trim(), // Required
+        postCode: postCode?.trim() || "N/A", // Default to "N/A" if empty
+        country: country.trim(), // Required
         items,
         totalPrice: totals.total,
         paymentMethod: paymentMethod, // 'cod' or 'online'
@@ -315,21 +316,24 @@ const GuestCheckout = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                    <label className="block text-sm font-medium text-gray-700">Phone <span className="text-red-600">*</span></label>
                     <input 
                       type="tel" 
                       value={guestPhone} 
                       onChange={(e) => setGuestPhone(e.target.value)} 
                       className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" 
                       placeholder="0300 1234567"
+                      required
                     />
+                    {errors.guestPhone && <p className="text-red-500 text-sm mt-1">{errors.guestPhone}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Country <span className="text-gray-400 text-sm">(optional)</span></label>
-                    <select value={country} onChange={(e) => setCountry(e.target.value)} className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <label className="block text-sm font-medium text-gray-700">Country <span className="text-red-600">*</span></label>
+                    <select value={country} onChange={(e) => setCountry(e.target.value)} className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" required>
                       <option value="">Select Country</option>
                       <option value="Pakistan">Pakistan</option>
                     </select>
+                    {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
                   </div>
                 </div>
 
@@ -341,20 +345,23 @@ const GuestCheckout = () => {
                     onChange={(e) => setAddress(e.target.value)} 
                     className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" 
                     placeholder="Full shipping address"
+                    required
                   />
                   {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">City <span className="text-gray-400 text-sm">(optional)</span></label>
+                    <label className="block text-sm font-medium text-gray-700">City <span className="text-red-600">*</span></label>
                     <input 
                       type="text" 
                       value={city} 
                       onChange={(e) => setCity(e.target.value)} 
                       className="mt-1 w-full py-2 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500" 
                       placeholder="City"
+                      required
                     />
+                    {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Postal Code <span className="text-gray-400 text-sm">(optional)</span></label>

@@ -241,10 +241,10 @@ const PlaceOrder = () => {
     setIsSubmitting(true);
     const prevCartItems = [...cartItems]; // Store previous cart state for rollback
     try {
-      // Clean postal code - if empty string, set to null/undefined so backend doesn't receive it
+      // Auto-fill postal code with "N/A" if empty
       const cleanedFormData = {
         ...formData,
-        postCode: formData.postCode?.trim() || undefined, // undefined will be omitted from JSON
+        postCode: formData.postCode?.trim() || "N/A", // Default to "N/A" if empty
       };
       
       const checkoutPayload = {
