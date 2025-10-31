@@ -233,8 +233,14 @@ const PlaceOrder = () => {
     setIsSubmitting(true);
     const prevCartItems = [...cartItems]; // Store previous cart state for rollback
     try {
-      const checkoutPayload = {
+      // Clean postal code - if empty string, set to null/undefined so backend doesn't receive it
+      const cleanedFormData = {
         ...formData,
+        postCode: formData.postCode?.trim() || undefined, // undefined will be omitted from JSON
+      };
+      
+      const checkoutPayload = {
+        ...cleanedFormData,
         items: cartItems.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
@@ -243,12 +249,7 @@ const PlaceOrder = () => {
         shippingFee: totals.shippingFee,
       };
 
-      console.log('🛒 Checkout Payload:', {
-        userEmail: formData.email,
-        itemsCount: checkoutPayload.items.length,
-        totalPrice: totals.total,
-        paymentMethod: formData.paymentMethod
-      });
+      console.log('🛒 FULL Checkout Payload:', checkoutPayload);
 
       const checkoutResponse = await processCheckout(checkoutPayload);
       console.log('📦 Checkout Response:', checkoutResponse);
