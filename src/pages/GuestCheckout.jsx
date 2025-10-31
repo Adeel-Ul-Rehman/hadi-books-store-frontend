@@ -20,7 +20,7 @@ const GuestCheckout = () => {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [postCode, setPostCode] = useState("");
-  const [country, setCountry] = useState("");
+  const [country, setCountry] = useState("Pakistan"); // Default to Pakistan
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [onlinePaymentOption, setOnlinePaymentOption] = useState("");
   const [paymentProof, setPaymentProof] = useState(null);
@@ -81,6 +81,9 @@ const GuestCheckout = () => {
     if (!guestName?.trim()) e.guestName = "Full name is required";
     if (!guestEmail?.trim() || !validator.isEmail(guestEmail)) e.guestEmail = "Valid email is required";
     if (!address?.trim()) e.address = "Address is required";
+    if (!city?.trim()) e.city = "City is required";
+    // postCode is optional - not validated
+    // country defaults to Pakistan - not validated
     // if paying online, require an online payment option and proof
     if (paymentMethod === "online") {
       if (!onlinePaymentOption) e.onlinePaymentOption = "Please select a payment option";

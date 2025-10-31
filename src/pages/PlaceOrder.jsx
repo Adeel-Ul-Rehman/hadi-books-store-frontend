@@ -34,7 +34,7 @@ const PlaceOrder = () => {
     address: user?.address || "",
     city: user?.city || "",
     postCode: user?.postCode || "",
-    country: user?.country || "",
+    country: user?.country || "Pakistan", // Default to Pakistan
     mobileNumber: user?.mobileNumber || "",
     paymentMethod: "cod",
     saveInfo: true,
@@ -180,8 +180,9 @@ const PlaceOrder = () => {
     if (!formData.email || !validator.isEmail(formData.email))
       newErrors.email = "Valid email is required";
     if (!formData.address) newErrors.address = "Address is required";
-  if (!formData.city) newErrors.city = "City is required";
-    if (!formData.country) newErrors.country = "Country is required";
+    if (!formData.city) newErrors.city = "City is required";
+    // postCode is optional - not validated
+    // country defaults to Pakistan - not validated
     if (
       !formData.mobileNumber ||
       !validator.isMobilePhone(formData.mobileNumber, "any")
