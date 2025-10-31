@@ -200,6 +200,17 @@ const PlaceOrder = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if cart is empty
+    if (!cartItems || cartItems.length === 0) {
+      toast.error("Your cart is empty. Please add items before checkout.", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      navigate('/collections');
+      return;
+    }
+    
     if (!validateForm()) {
       toast.error("Please fill in all required fields correctly", {
         position: "top-center",
@@ -221,7 +232,16 @@ const PlaceOrder = () => {
         shippingFee: totals.shippingFee,
       };
 
+      console.log('🛒 Checkout Payload:', {
+        userEmail: formData.email,
+        itemsCount: checkoutPayload.items.length,
+        totalPrice: totals.total,
+        paymentMethod: formData.paymentMethod
+      });
+
       const checkoutResponse = await processCheckout(checkoutPayload);
+      console.log('📦 Checkout Response:', checkoutResponse);
+      
       if (checkoutResponse.success) {
         setOrderPlaced(true); // Set orderPlaced true immediately after success
         toast.success("Order placed successfully", {
@@ -257,6 +277,7 @@ const PlaceOrder = () => {
           navigate("/orders", { replace: true });
         }, 7000); // Increased to 7 seconds for longer display
       } else {
+        console.error('❌ Checkout failed:', checkoutResponse);
         toast.error(checkoutResponse.message || "Failed to place order", {
           position: "top-center",
           autoClose: 3000,
@@ -264,8 +285,13 @@ const PlaceOrder = () => {
         setCartItems(prevCartItems); // Revert cart if checkout fails
       }
     } catch (error) {
-      console.error("Checkout Error:", error);
-      toast.error("An unexpected error occurred during checkout", {
+      console.error("❌ Checkout Error:", error);
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      toast.error(error.response?.data?.message || "An unexpected error occurred during checkout", {
         position: "top-center",
         autoClose: 3000,
       });
